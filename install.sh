@@ -44,13 +44,17 @@ exec "$VENV/bin/terminalgpt" "\$@"
 EOF
 chmod +x "$BIN_DIR/terminalgpt"
 
-# Make the command available in common interactive shells after installation.
+# Configure the detected interactive shell. For Fish, use fish_add_path in
+# config.fish and also update the current Fish session immediately.
 case "${SHELL:-}" in
   */fish)
     FISH_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"
     mkdir -p "$(dirname "$FISH_CONFIG")"
     touch "$FISH_CONFIG"
     grep -Fqx "fish_add_path $BIN_DIR" "$FISH_CONFIG" 2>/dev/null || echo "fish_add_path $BIN_DIR" >> "$FISH_CONFIG"
+    if command -v fish >/dev/null 2>&1; then
+      fish -c 'fish_add_path "$HOME/.local/bin"' 2>/dev/null || true
+    fi
     ;;
   */zsh)
     ZSH_CONFIG="$HOME/.zshrc"
@@ -66,7 +70,7 @@ esac
 
 echo "TerminalGPT installed to $BIN_DIR/terminalgpt"
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-  echo "Current shell: run 'source ~/.config/fish/config.fish' (fish) or start a new shell."
+  echo "PATH configured for future shells. For the current shell, run: fish_add_path $BIN_DIR"
 fi
 echo "Run: terminalgpt chat"
 
