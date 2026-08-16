@@ -4,6 +4,28 @@ A terminal-first OpenAI agent with a one-time browser approval/control plane.
 
 The repository is intentionally small and uses the OpenAI Agents SDK. The agent can reason about the local machine, request shell-command execution, keep command output in session state, and pause until a human approves the requested command in the browser. The approval model follows the Agents SDK human-in-the-loop pattern: sensitive tool execution must be approved before the side effect happens. See: https://openai.github.io/openai-agents-python/human_in_the_loop/
 
+## One-line install and run
+
+On Linux/macOS with Python 3.11+:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Loverof-Darkness/TerminalGpt/main/install.sh | bash -s -- chat
+```
+
+Install only:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Loverof-Darkness/TerminalGpt/main/install.sh | bash
+```
+
+Then run:
+
+```bash
+terminalgpt chat
+```
+
+The installer creates an isolated virtual environment under `~/.local/share/terminalgpt`, installs the current GitHub `main` revision, and places a launcher at `~/.local/bin/terminalgpt`. It requires Python 3.11+ and does not use the system Python environment for package installation.
+
 ## Architecture
 
 ```text
@@ -32,9 +54,9 @@ The browser is a control/approval surface, not an unauthenticated remote shell. 
 
 - Python 3.11+
 - An OpenAI API key in `OPENAI_API_KEY`
-- `uv` recommended
+- `uv` recommended for development
 
-Install:
+For development:
 
 ```bash
 uv sync
@@ -68,7 +90,7 @@ export TERMINALGPT_WORKSPACE="$HOME"
 
 The design reserves `TERMINALGPT_TOOLS_URL` for a GitHub-hosted signed tool manifest. Remote Python is **not** executed directly from an arbitrary URL. A production package loader should verify repository identity, commit/tag pinning, file hashes/signatures, declared permissions, and user approval before enabling a tool.
 
-A convenient future single-line interface is intended to look like:
+The intended one-line interface is:
 
 ```bash
 terminalgpt tools add github:Loverof-Darkness/SomeTool@v1.0.0
@@ -83,3 +105,7 @@ This preserves the requested one-line GitHub installation model without the unsa
 - Use a dedicated non-root user/workspace for agent execution.
 - Keep destructive commands behind approval.
 - For remote browser control, add real authentication, TLS, CSRF protection, rate limiting, and signed session claims before deployment.
+
+## OpenAI Agents SDK
+
+TerminalGPT uses the OpenAI Agents SDK for the agent/tool execution layer. See the official documentation: https://openai.github.io/openai-agents-python/
