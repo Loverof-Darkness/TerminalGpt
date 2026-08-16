@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import asyncio
-import html
 import secrets
-from collections.abc import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -46,19 +43,56 @@ async def health():
 
 
 @app.get("/pair", response_class=HTMLResponse)
-async def pair(token: str):
-    if not token:
-        raise HTTPException(400, "Missing token")
+async def pair(token: str, session: str):
+    if not token or not session:
+        raise HTTPException(400, "Missing pairing token or session")
+    if session not in sessions:
+        raise HTTPException(404, "Session not found")
+    # The pairing URL is the single-use approval action. Once opened,
+    # the token becomes valid for the lifetime of the paired session.
+    if not pairings.approve(token):
+        raise HTTPException(401, "Invalid, expired, or already-used pairing token")
+
     return f"""
 <!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>
-<title>TerminalGPT Approval</title><style>body{{font-family:system-ui;max-width:900px;margin:40px auto;padding:0 20px}}button{{padding:12px 18px;margin:6px}}pre{{background:#111;color:#eee;padding:16px;overflow:auto}}</style></head>
-<body><h1>TerminalGPT</h1><p>Browser approval console</p><pre id='out'>Connecting...</pre>
+<title>TerminalGPT Approval</title>
+<style>
+body{{font-family:system-ui;max-width:1000px;margin:40px auto;padding:0 20px;background:#0b0b0b;color:#eee}}
+pre{{background:#151515;color:#eee;padding:16px;border-radius:10px;overflow:auto;white-space:pre-wrap}}
+button{{padding:10px 16px;margin:4px;border:0;border-radius:8px;cursor:pointer}}
+.approve{{background:#24a148;color:white}}.deny{{background:#da1e28;color:white}}
+.card{{background:#151515;padding:18px;border-radius:12px;margin:14px 0}}
+</style></head>
+<body><h1>TerminalGPT</h1><p>Browser control and approval console</p>
+<div class='card'><strong>Status:</strong> <span id='status'>Paired</span></div>
+<div class='card'><h3>Terminal output</h3><pre id='out'>Connecting...</pre></div>
+<div class='card'><h3>Pending commands</h3><div id='approvals'>None</div></div>
 <script>
 const token={token!r};
-const qs=new URLSearchParams(location.search); const session=qs.get('session');
-async function poll() {{ const r=await fetch('/api/state?token='+encodeURIComponent(token)+'&session_id='+encodeURIComponent(session)); const j=await r.json();
- document.getElementById('out').textContent=JSON.stringify(j,null,2); setTimeout(poll,1000); }} poll();
-window.approve=async function(id,yes) {{ await fetch('/api/approve',{{method:'POST',headers:{{'content-type':'application/json'}},body:JSON.stringify({{token,session_id:session,approval_id:id,approved:yes}})}}); }};
+const session={session!r};
+async function poll() {{
+ try {{
+  const r=await fetch('/api/state?token='+encodeURIComponent(token)+'&session_id='+encodeURIComponent(session));
+  const j=await r.json();
+  if (!r.ok) throw new Error(j.detail || 'Request failed');
+  document.getElementById('out').textContent=j.last_output || JSON.stringify(j.events,null,2);
+  const box=document.getElementById('approvals'); box.innerHTML='';
+  if (!j.pending_approvals.length) box.textContent='None';
+  for (const a of j.pending_approvals) {{
+    const card=document.createElement('div'); card.className='card';
+    const pre=document.createElement('pre'); pre.textContent=a.command;
+    const yes=document.createElement('button'); yes.className='approve'; yes.textContent='Approve';
+    const no=document.createElement('button'); no.className='deny'; no.textContent='Deny';
+    yes.onclick=()=>resolve(a.id,true); no.onclick=()=>resolve(a.id,false);
+    card.append(pre,yes,no); box.appendChild(card);
+  }}
+ }} catch(e) {{ document.getElementById('status').textContent='Error: '+e.message; }}
+ setTimeout(poll,1000);
+}}
+async function resolve(id, approved) {{
+ await fetch('/api/approve',{{method:'POST',headers:{{'content-type':'application/json'}},body:JSON.stringify({{token,session_id:session,approval_id:id,approved}})}});
+}}
+poll();
 </script></body></html>"""
 
 
