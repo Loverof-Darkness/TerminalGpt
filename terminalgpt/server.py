@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import secrets
+import traceback
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -48,8 +49,6 @@ async def pair(token: str, session: str):
         raise HTTPException(400, "Missing pairing token or session")
     if session not in sessions:
         raise HTTPException(404, "Session not found")
-    # The pairing URL is the single-use approval action. Once opened,
-    # the token becomes valid for the lifetime of the paired session.
     if not pairings.approve(token):
         raise HTTPException(401, "Invalid, expired, or already-used pairing token")
 
@@ -137,5 +136,12 @@ async def prompt(request: PromptRequest):
         await state.resume_event.wait()
         return approval.approved
 
-    output = await run_agent(request.message, state, request_approval)
-    return JSONResponse({"output": output})
+    try:
+        output = await run_agent(request.message, state, request_approval)
+        return JSONResponse({"output": output})
+    except Exception as exc:
+        state.emit("agent_error", error=f"{type(exc).__name__}: {exc}")
+        # Return a useful diagnostic to the local terminal without exposing a traceback
+        # or environment secrets. The full traceback remains server-side.
+        traceback.print_exc()
+        raise HTTPException(500, f"{type(exc).__name__}: {exc}") from exc
