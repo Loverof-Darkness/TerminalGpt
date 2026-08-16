@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import os
-import shlex
-from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from agents import function_tool
 
-from .state import Approval, SessionState
+from .state import SessionState
 
 
 async def _exec_command(command: str, cwd: str, timeout: int = 120) -> tuple[int, str]:
@@ -46,9 +44,12 @@ class CommandRunner:
 
 
 def build_tools(runner: CommandRunner):
-    @function_tool(needs_approval=True)
+    # Browser approval is implemented by CommandRunner/request_approval. Do not also
+    # request an Agents SDK interruption here, otherwise Runner.run would return an
+    # interruption object that this server does not resume.
+    @function_tool
     async def execute_command(command: str) -> str:
-        """Execute a shell command in the configured workspace after browser approval."""
+        """Execute a shell command after browser approval."""
         return await runner.run(command)
 
     @function_tool
