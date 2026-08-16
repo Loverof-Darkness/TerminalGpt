@@ -1,0 +1,21 @@
+[project]
+name = "terminalgpt"
+version = "0.1.0"
+description = "Terminal-first OpenAI agent with one-time browser approval and live terminal control"
+requires-python = ">=3.11"
+dependencies = [
+  "openai-agents",
+  "fastapi",
+  "uvicorn[standard]",
+  "httpx",
+  "pydantic>=2",
+  "rich",
+  "typer",
+]
+
+[project.scripts]
+terminalgpt = "terminalgpt.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
