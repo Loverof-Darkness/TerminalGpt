@@ -13,29 +13,54 @@ trap cleanup EXIT
 show_welcome() {
   local reset='\033[0m' border='\033[1;36m' terminal_color='\033[1;35m' gpt_color='\033[1;36m' white='\033[1;97m' gray='\033[0;37m' red='\033[1;31m'
   local width=69
-  local line
-  line=$(printf '%*s' "$width" '' | tr ' ' '─')
+  local horizontal
+  horizontal=$(printf '%*s' "$width" '' | tr ' ' '─')
+
+  glyph() {
+    case "$1:$2" in
+      T:1) printf '█████';; T:2|T:3|T:4|T:5) printf '  █  ';;
+      E:1|E:3|E:5) printf '█████';; E:2|E:4) printf '██   ';;
+      R:1) printf '████ '; ; R:2) printf '██ ██';; R:3) printf '████ '; ; R:4|R:5) printf '██ ██';;
+      M:1|M:5) printf '██ ██';; M:2|M:3|M:4) printf '█████';;
+      I:1|I:5) printf '█████';; I:2|I:3|I:4) printf '  █  ';;
+      N:1|N:5) printf '██ ██';; N:2|N:3|N:4) printf '█████';;
+      A:1) printf ' ███ ';; A:2|A:4|A:5) printf '██ ██';; A:3) printf '█████';;
+      L:1|L:2|L:3|L:4) printf '██   ';; L:5) printf '█████';;
+      G:1) printf ' ████';; G:2|G:4) printf '██   ';; G:3) printf '██ ██';; G:5) printf ' ████';;
+      P:1) printf '████ ';; P:2|P:3) printf '██ ██';; P:4|P:5) printf '██   ';;
+      *) printf '     ';;
+    esac
+  }
+
+  logo_row() {
+    local row="$1" word='TERMINALGPT' i letter
+    for ((i=0; i<${#word}; i++)); do
+      letter="${word:i:1}"
+      if (( i < 8 )); then
+        printf '%b' "$terminal_color"
+      else
+        printf '%b' "$gpt_color"
+      fi
+      glyph "$letter" "$row"
+      printf '%b' "$reset"
+      (( i < ${#word}-1 )) && printf ' '
+    done
+  }
 
   printf '\n'
-  printf '%b\n' "${border}╭${line}╮${reset}"
-  printf '%b' "${border}│${reset}  ${terminal_color}█████ █████ ████  █████ ██  █ █████ ${reset}"
-  printf '%b\n' " ${border}│${reset}"
-  printf '%b' "${border}│${reset}  ${terminal_color}  █   ██    ██  ██ ██    ██ ████  ${reset}"
-  printf '%b\n' " ${border}│${reset}"
-  printf '%b' "${border}│${reset}  ${terminal_color}  █   ████  ████  ████    █████  ${reset}"
-  printf '%b\n' " ${border}│${reset}"
-  printf '%b' "${border}│${reset}  ${terminal_color}  █   ██    ██    ██ ██   ██ ██  ${reset}"
-  printf '%b\n' " ${border}│${reset}"
-  printf '%b' "${border}│${reset}  ${terminal_color}  █   █████ ██    ██  ██ █████ █████ ${reset}"
-  printf '%b' "${gpt_color} GPT${reset}"
-  printf '%b\n' " ${border}│${reset}"
-  printf '%b\n' "${border}├${line}┤${reset}"
-  printf '%b' "${border}│${reset}"
+  printf '%b\n' "${border}╭${horizontal}╮${reset}"
+  for row in 1 2 3 4 5; do
+    printf '%b' "${border}│${reset}  "
+    logo_row "$row"
+    printf '%b\n' "  ${border}│${reset}"
+  done
+  printf '%b\n' "${border}├${horizontal}┤${reset}"
   local tagline='Terminal-first AI agent for your system'
   local left=$(( (width - ${#tagline}) / 2 ))
-  printf '%*s%b%*s' "$left" '' "${white}${tagline}${reset}" "$(( width-left-${#tagline} ))" ''
+  printf '%b' "${border}│${reset}"
+  printf '%*s%b%*s' "$left" '' "${white}${tagline}${reset}" "$((width-left-${#tagline}))" ''
   printf '%b\n' "${border}│${reset}"
-  printf '%b\n' "${border}╰${line}╯${reset}"
+  printf '%b\n' "${border}╰${horizontal}╯${reset}"
   printf '\n'
 
   printf '%b\n' "${white}TerminalGPT${reset} is a terminal-first AI agent that can reason about your machine,"
