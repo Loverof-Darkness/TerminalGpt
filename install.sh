@@ -9,52 +9,46 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 show_loading() {
-  local frames=('|' '/' '-' '\\')
   local i
   printf '\n'
-  for i in {1..16}; do
-    printf '\r\033[1;36m  Initializing TerminalGPT %s\033[0m' "${frames[$((i % 4))]}"
-    sleep 0.06
-  done
+  for i in {1..18}; do
+    case $((i % 4)) in
+      0) printf '\r\033[1;36m  Initializing TerminalGPT |\033[0m' ;;
+      1) printf '\r\033[1;36m  Initializing TerminalGPT /\033[0m' ;;
+      2) printf '\r\033[1;36m  Initializing TerminalGPT -\033[0m' ;;
+      3) printf '\r\033[1;36m  Initializing TerminalGPT \\\033[0m' ;;
+    esac
+    sleep 0.055
+done
   printf '\r\033[1;36m  Initializing TerminalGPT [OK]\033[0m\n'
   printf '  Preparing installer...\n\n'
 }
 
 show_welcome() {
-  # Large 5x7 block-font ANSI wordmark.
-  # TERMINAL = bright magenta, GPT = bright red.
-  local magenta=$'\033[1;35m'
+  # Stylized ANSI artwork: bright face + darker shadow layers.
+  # TERMINAL = magenta / violet, GPT = red / deep red.
+  local pink=$'\033[38;5;213m'
+  local violet=$'\033[38;5;129m'
   local red=$'\033[1;31m'
+  local darkred=$'\033[38;5;88m'
   local cyan=$'\033[1;36m'
   local white=$'\033[1;97m'
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
 
-  local -a T E R M I N A L G P
-  T=('█████' '  █  ' '  █  ' '  █  ' '  █  ' '  █  ' '  █  ')
-  E=('█████' '██   ' '██   ' '████ ' '██   ' '██   ' '█████')
-  R=('████ ' '██ ██' '██ ██' '████ ' '██ ██' '██  █' '██   ') 
-  M=('█   █' '██ ██' '█████' '█ █ █' '█   █' '█   █' '█   █')
-  I=('█████' '  █  ' '  █  ' '  █  ' '  █  ' '  █  ' '█████')
-  N=('█   █' '██  █' '██  █' '█ █ █' '█  ██' '█  ██' '█   █')
-  A=(' ███ ' '█   █' '█   █' '█████' '█   █' '█   █' '█   █')
-  L=('█    ' '█    ' '█    ' '█    ' '█    ' '█    ' '█████')
-  G=(' ████' '██   ' '█    ' '█ ███' '█   █' '█   █' ' ████')
-  P=('████ ' '█   █' '█   █' '████ ' '█    ' '█    ' '█    ')
+  # Large fixed-width wordmark with a hand-built ANSI-shadow look.
+  printf '%s  █████  █████ ██████  █████  ███  ███ █████  █     █   █████ ██████ %s %s █████ █████ █████ %s\n' "$violet" "$pink" "$darkred" "$red"
+  printf '%s ██   ██ ██    ██   ██ ██   ██ ████ ████ ██    ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
+  printf '%s ██      ██    ██   ██ ██   ██ ██ ███ ██ ██    ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
+  printf '%s  █████  █████ ██████  ███████ ██  █  ██ █████  ██     ██  ██   ██ █████ %s %s██   ██ █████ ███ %s\n' "$violet" "$pink" "$darkred" "$red"
+  printf '%s      ██ ██    ██  ██  ██   ██ ██     ██ ██     ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
+  printf '%s ██   ██ ██    ██   ██ ██   ██ ██     ██ ██     ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
+  printf '%s  █████  █████ ██   ██ ██   ██ ██     ██ █████  █████  ██   █████ ██████ %s %s █████ █████ █████ %s\n' "$violet" "$pink" "$darkred" "$red"
 
-  local row
-  for row in {0..6}; do
-    printf '%s' "$magenta"
-    printf '%s ' "${T[$row]}" "${E[$row]}" "${R[$row]}" "${M[$row]}" "${I[$row]}" "${N[$row]}" "${A[$row]}" "${L[$row]}"
-    printf '%s' "$reset"
-    printf '%s' "$red"
-    printf '%s %s %s' "${G[$row]}" "${P[$row]}" "${T[$row]}"
-    printf '%s\n' "$reset"
-  done
-
-  printf '%s==========================================================================%s\n' "$cyan" "$reset"
-  printf '%s              %sTerminal-first AI agent for your system%s              %s\n' "$cyan" "$white" "$reset" "$cyan"
-  printf '%s==========================================================================%s\n\n' "$cyan" "$reset"
+  printf '%s  ░▒▓%s TERMINAL %s▓▒░%s  %s░▒▓%s GPT %s▓▒░%s\n' "$cyan" "$pink" "$reset" "$cyan" "$cyan" "$red" "$reset" "$cyan"
+  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n' "$cyan" "$reset"
+  printf '%s                 %sTERMINAL-FIRST AI AGENT FOR YOUR SYSTEM%s                 %s\n' "$cyan" "$white" "$reset" "$cyan"
+  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n\n' "$cyan" "$reset"
 
   printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
@@ -78,17 +72,9 @@ show_welcome() {
     IFS= read -r answer < /dev/tty || exit 1
     answer="${answer:-Y}"
     case "$answer" in
-      Y|y|yes|YES|Yes)
-        printf '\n'
-        return 0
-        ;;
-      N|n|no|NO|No)
-        printf 'Installation cancelled.\n'
-        exit 0
-        ;;
-      *)
-        printf '%sPlease answer Y or N.%s\n' "$red" "$reset"
-        ;;
+      Y|y|yes|YES|Yes) printf '\n'; return 0 ;;
+      N|n|no|NO|No) printf 'Installation cancelled.\n'; exit 0 ;;
+      *) printf '%sPlease answer Y or N.%s\n' "$red" "$reset" ;;
     esac
   done
 }
