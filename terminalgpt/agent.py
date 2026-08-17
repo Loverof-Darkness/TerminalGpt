@@ -79,8 +79,14 @@ def _learn_explicit_facts(memory: MemoryStore, text: str) -> None:
             memory.set_fact(key, match.group(1).strip())
 
 
-async def run_agent(message: str, state: SessionState, request_approval) -> str:
+async def run_agent(
+    message: str,
+    state: SessionState,
+    request_approval,
+    model: str | None = None,
+) -> str:
     client = _client()
+    selected_model = model or settings.model
     runner = CommandRunner(state, settings.workspace, request_approval)
     memory = MemoryStore(settings.memory_path)
 
@@ -95,11 +101,11 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
     messages.append({"role": "user", "content": message})
 
     memory.add_message("user", message)
-    state.emit("agent_started", message=message, provider=settings.provider, model=settings.model)
+    state.emit("agent_started", message=message, provider=settings.provider, model=selected_model)
 
     for _ in range(6):
         response = await client.chat.completions.create(
-            model=settings.model,
+            model=selected_model,
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
@@ -132,7 +138,7 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
 
         if not tool_calls:
             output = assistant.content or ""
-            state.emit("agent_finished", output=output)
+            state.emit("agent_finished", output=output, model=selected_model)
             return output
 
         for call in tool_calls:
