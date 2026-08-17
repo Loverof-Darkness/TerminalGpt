@@ -1,0 +1,4 @@
+TERMINAL = magenta ANSI
+GPT = cyan ANSI
+Fixed inner frame = 69 columns
+Logo width = 65 visible columns + 2 spaces padding on each side
