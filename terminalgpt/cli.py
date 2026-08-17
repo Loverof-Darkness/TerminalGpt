@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import AbstractContextManager
 
 import typer
 from rich.console import Console
 from rich.panel import Panel
 
 from .agent import run_agent
+from .config import settings
+from .memory import MemoryStore
 from .state import SessionState
 
 app = typer.Typer(add_completion=False)
@@ -17,16 +18,14 @@ console = Console()
 @app.command()
 def start():
     """Start the legacy local control plane."""
-    from .config import settings
+    from .config import settings as cfg
     import uvicorn
     from .server import app as fastapi_app
 
-    uvicorn.run(fastapi_app, host=settings.server_host, port=settings.server_port)
+    uvicorn.run(fastapi_app, host=cfg.server_host, port=cfg.server_port)
 
 
 class ThinkingIndicator:
-    """Small Rich spinner used while the online model is generating a response."""
-
     def __init__(self) -> None:
         self._status = None
 
@@ -42,7 +41,6 @@ class ThinkingIndicator:
 
 
 async def terminal_approval(command: str, thinking: ThinkingIndicator) -> bool:
-    # Stop the spinner before showing an interactive prompt so the terminal stays clean.
     thinking.stop()
     console.print(
         Panel(
@@ -64,29 +62,34 @@ async def terminal_approval(command: str, thinking: ThinkingIndicator) -> bool:
 async def interactive_chat() -> None:
     state = SessionState()
     thinking = ThinkingIndicator()
-
     console.print(
         Panel.fit(
             "[bold green]TerminalGPT is ready.[/bold green]\n"
-            "API key authorization is already configured.\n"
-            "Browser authentication is disabled.\n"
-            "Command approvals will appear here in the terminal.",
+            f"Provider: {settings.provider} | Model: {settings.model}\n"
+            "Persistent local memory: enabled\n"
+            "Command approvals: terminal Y/N",
             title="TerminalGPT",
         )
     )
-    console.print("Type /exit to quit.")
+    console.print("Type /exit to quit. Type /memory clear to erase saved conversation memory.")
 
     while True:
         message = console.input("[bold cyan]you[/bold cyan]: ").strip()
-        if message.lower() in {"/exit", "/quit"}:
+        command = message.lower()
+        if command in {"/exit", "/quit"}:
             thinking.stop()
             break
+        if command == "/memory clear":
+            thinking.stop()
+            MemoryStore(settings.memory_path).clear()
+            console.print("[green]✓ Persistent memory cleared.[/green]")
+            continue
         if not message:
             continue
 
         try:
             thinking.start("Thinking")
-            approval = lambda command: terminal_approval(command, thinking)
+            approval = lambda cmd: terminal_approval(cmd, thinking)
             output = await run_agent(message, state, approval)
             thinking.stop()
             console.print(Panel(output, title="TerminalGPT"))
