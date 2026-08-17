@@ -66,7 +66,7 @@ show_welcome() {
   printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset"
   printf '%s%s %s %s%s\n' "$red" "$G5" "$P5" "$GT5" "$reset"
 
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
   printf '%s%s %s %s%s\n' "$red" "$G6" "$P6" "$GT6" "$reset"
 
   printf '%s  ░▒▓%sTERMINAL%s▓▒░     ░▒▓%sGPT%s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$cyan"
