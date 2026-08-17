@@ -11,23 +11,29 @@ cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
 show_welcome() {
-  local reset='\033[0m' border='\033[1;36m' terminal_color='\033[1;35m' gpt_color='\033[1;36m' white='\033[1;97m' gray='\033[0;37m' red='\033[1;31m'
-  local width=69
+  local reset='\033[0m'
+  local border='\033[1;36m'
+  local terminal_color='\033[1;35m'
+  local gpt_color='\033[1;31m'
+  local white='\033[1;97m'
+  local gray='\033[0;37m'
+  local red='\033[1;31m'
+  local width=73
   local horizontal
   horizontal=$(printf '%*s' "$width" '' | tr ' ' '─')
 
   glyph() {
     case "$1:$2" in
-      T:1) printf '█████';; T:2|T:3|T:4|T:5) printf '  █  ';;
-      E:1|E:3|E:5) printf '█████';; E:2|E:4) printf '██   ';;
-      R:1) printf '████ ';; R:2) printf '██ ██';; R:3) printf '████ ';; R:4|R:5) printf '██ ██';;
-      M:1|M:5) printf '██ ██';; M:2|M:3|M:4) printf '█████';;
-      I:1|I:5) printf '█████';; I:2|I:3|I:4) printf '  █  ';;
-      N:1|N:5) printf '██ ██';; N:2|N:3|N:4) printf '█████';;
-      A:1) printf ' ███ ';; A:2|A:4|A:5) printf '██ ██';; A:3) printf '█████';;
-      L:1|L:2|L:3|L:4) printf '██   ';; L:5) printf '█████';;
-      G:1) printf ' ████';; G:2|G:4) printf '██   ';; G:3) printf '██ ██';; G:5) printf ' ████';;
-      P:1) printf '████ ';; P:2|P:3) printf '██ ██';; P:4|P:5) printf '██   ';;
+      T:1) printf '█████';; T:2|T:3|T:4|T:5|T:6|T:7) printf '  █  ';;
+      E:1|E:4|E:7) printf '█████';; E:2|E:3|E:5|E:6) printf '██   ';;
+      R:1) printf '████ '; R:2) printf '██ ██'; R:3) printf '████ '; R:4|R:5|R:6|R:7) printf '██ ██';;
+      M:1|M:7) printf '██ ██'; M:2) printf '█████'; M:3) printf '██ ██'; M:4|M:5|M:6) printf '██ ██';;
+      I:1|I:7) printf '█████'; I:2|I:3|I:4|I:5|I:6) printf '  █  ';;
+      N:1|N:7) printf '██ ██'; N:2|N:3|N:4|N:5|N:6) printf '█████';;
+      A:1) printf ' ███ '; A:2|A:3) printf '██ ██'; A:4) printf '█████'; A:5|A:6|A:7) printf '██ ██';;
+      L:1|L:2|L:3|L:4|L:5|L:6) printf '██   '; L:7) printf '█████';;
+      G:1) printf ' ████'; G:2|G:3) printf '██   '; G:4) printf '██ ██'; G:5|G:6) printf '██ ██'; G:7) printf ' ████';;
+      P:1) printf '████ '; P:2|P:3) printf '██ ██'; P:4|P:5|P:6|P:7) printf '██   ';;
       *) printf '     ';;
     esac
   }
@@ -49,16 +55,20 @@ show_welcome() {
 
   printf '\n'
   printf '%b\n' "${border}╭${horizontal}╮${reset}"
-  for row in 1 2 3 4 5; do
-    printf '%b' "${border}│${reset}  "
+  for row in 1 2 3 4 5 6 7; do
+    printf '%b' "${border}│${reset}"
+    printf '  '
     logo_row "$row"
-    printf '%b\n' "  ${border}│${reset}"
+    printf '  '
+    printf '%b\n' "${border}│${reset}"
   done
   printf '%b\n' "${border}├${horizontal}┤${reset}"
-  local tagline='Terminal-first AI agent for your system'
+
+  local tagline='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
   local left=$(( (width - ${#tagline}) / 2 ))
+  local right=$(( width - left - ${#tagline} ))
   printf '%b' "${border}│${reset}"
-  printf '%*s%b%*s' "$left" '' "${white}${tagline}${reset}" "$((width-left-${#tagline}))" ''
+  printf '%*s%b%*s' "$left" '' "${white}${tagline}${reset}" "$right" ''
   printf '%b\n' "${border}│${reset}"
   printf '%b\n' "${border}╰${horizontal}╯${reset}"
   printf '\n'
