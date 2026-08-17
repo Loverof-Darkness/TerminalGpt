@@ -6,15 +6,12 @@ INSTALL_ROOT="${TERMINALGPT_HOME:-$HOME/.local/share/terminalgpt}"
 BIN_DIR="${TERMINALGPT_BIN_DIR:-$HOME/.local/bin}"
 VENV="$INSTALL_ROOT/venv"
 TMP_DIR="$(mktemp -d)"
-
-cleanup() { rm -rf "$TMP_DIR"; }
-trap cleanup EXIT
+trap 'rm -rf "$TMP_DIR"' EXIT
 
 show_loading() {
   local cyan=$'\033[1;36m' reset=$'\033[0m'
   local frames=('|' '/' '-' '\\')
   local i
-
   printf '\n'
   for i in {1..16}; do
     printf '\r%s  Initializing TerminalGPT %s%s' "$cyan" "${frames[$((i % 4))]}" "$reset"
@@ -25,79 +22,52 @@ show_loading() {
 }
 
 show_welcome() {
-  local border=$'\033[1;36m'
-  local terminal_color=$'\033[1;35m'
-  local gpt_color=$'\033[1;31m'
+  local cyan=$'\033[1;36m'
+  local magenta=$'\033[1;35m'
+  local red=$'\033[1;31m'
   local white=$'\033[1;97m'
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
-  local width=73
-  local horizontal
-  horizontal=$(printf '%*s' "$width" '' | tr ' ' '-')
 
-  printf '%s+%s+%s\n' "$border" "$horizontal" "$reset"
-
-  # 7-row HD-style block logo. TERMINAL = magenta, GPT = red.
-  printf '%s|  %s█████ █████ ████  ██ ██ █████ ██ ██  ███  ██     %s███  █████ █████%s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-  printf '%s|  %s  █   ██    ██  ██ ██ ██   █    ███  ██     %s██   ██  ██ ██   %s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-  printf '%s|  %s  █   ████  ██  ██ ██ ████ █    ████ ██     %s██   ██  ██ █████ %s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-  printf '%s|  %s  █   ██    ██  ██ ██ ██   █    ██ █ ██     %s██   ██████ ██    %s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-  printf '%s|  %s  █   ██    ██  ██ ██ ██   █    ██  ██     %s██   ██  ██ ██    %s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-  printf '%s|  %s  █   ██    ██  ██ ██ ██   █    ██  ██     %s██   ██  ██ ██    %s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-  printf '%s|  %s  █   █████ ██   ██ ██ █████ █    ██  ██     %s ████ █████ ██    %s  |%s\n' \
-    "$border" "$terminal_color" "$gpt_color" "$reset" "$border"
-
-  printf '%s+%s+%s\n' "$border" "$horizontal" "$reset"
-
-  local tagline='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
-  local left=$(( (width - ${#tagline}) / 2 ))
-  local right=$(( width - left - ${#tagline} ))
-  printf '%s|%*s%s%s%s%*s|%s\n' \
-    "$border" "$left" '' "$white" "$tagline" "$reset" "$right" '' "$border"
-  printf '%s+%s+%s\n' "$border" "$horizontal" "$reset"
+  printf '%s+------------------------------------------------------------------------------+%s\n' "$cyan" "$reset"
+  printf '%s|%s                                                                            %s|%s\n' "$cyan" "$reset" "$cyan" "$reset"
+  printf '%s|  %s████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
+  printf '%s|  %s╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
+  printf '%s|  %s   ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
+  printf '%s|  %s   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
+  printf '%s|  %s   ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗      %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
+  printf '%s|  %s   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝ %sGPT %s|%s\n' "$cyan" "$magenta" "$red" "$reset" "$reset"
+  printf '%s|%s                                                                            %s|%s\n' "$cyan" "$reset" "$cyan" "$reset"
+  printf '%s|                 %sTerminal-first AI agent for your system%s                 %s|%s\n' "$cyan" "$white" "$reset" "$cyan" "$reset"
+  printf '%s|%s                                                                            %s|%s\n' "$cyan" "$reset" "$cyan" "$reset"
+  printf '%s+------------------------------------------------------------------------------+%s\n' "$cyan" "$reset"
   printf '\n'
 
   printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
-  printf 'human approval before performing sensitive actions.\n'
-  printf '\n'
+  printf 'human approval before performing sensitive actions.\n\n'
   printf '%sThis installer will download the latest TerminalGPT source from GitHub,%s\n' "$gray" "$reset"
   printf 'create an isolated Python environment, install dependencies, and install\n'
-  printf 'the %sterminalgpt%s command under %s%s%s.\n' "$white" "$reset" "$white" "$BIN_DIR" "$reset"
-  printf '\n'
+  printf 'the %sterminalgpt%s command under %s%s%s.\n\n' "$white" "$reset" "$white" "$BIN_DIR" "$reset"
 
   if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
     return 0
   fi
 
   if [[ ! -r /dev/tty ]]; then
-    printf '%sUnable to read confirmation from the terminal.%s\n' "$gpt_color" "$reset"
+    printf '%sUnable to read confirmation from the terminal.%s\n' "$red" "$reset"
     exit 1
   fi
 
   local answer
   while true; do
-    printf '%sContinue with installation? [Y/n]: %s' "$border" "$reset"
+    printf '%sContinue with installation? [Y/n]: %s' "$cyan" "$reset"
     IFS= read -r answer < /dev/tty || exit 1
     answer="${answer:-Y}"
     case "$answer" in
-      Y|y|yes|YES|Yes)
-        printf '\n'
-        return 0
-        ;;
-      N|n|no|NO|No)
-        printf 'Installation cancelled.\n'
-        exit 0
-        ;;
-      *)
-        printf '%sPlease answer Y or N.%s\n' "$gpt_color" "$reset"
-        ;;
+      Y|y|yes|YES|Yes) printf '\n'; return 0 ;;
+      N|n|no|NO|No) printf 'Installation cancelled.\n'; exit 0 ;;
+      *) printf '%sPlease answer Y or N.%s\n' "$red" "$reset" ;;
     esac
   done
 }
