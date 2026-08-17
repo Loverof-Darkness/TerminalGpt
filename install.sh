@@ -34,10 +34,9 @@ show_welcome() {
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
 
-  # The logo artwork is 102 terminal cells wide. The box content width is 106
-  # cells: exactly two spaces of left/right padding around every logo row.
-  local logo_width=102
-  local content_width=106
+  # Each logo row is exactly 104 terminal cells wide.
+  # With one | on each side, the full box is exactly 106 columns wide.
+  local content_width=104
   local border_line
   border_line=$(printf '%*s' "$content_width" '' | tr ' ' '-')
 
@@ -54,9 +53,7 @@ show_welcome() {
   local P1='██████╗ ' P2='██╔══██╗' P3='██████╔╝' P4='██╔═══╝ ' P5='██║     ' P6='╚═╝     '
   local GT1='████████╗' GT2='╚══██╔══╝' GT3='   ██║   ' GT4='   ██║   ' GT5='   ██║   ' GT6='   ╚═╝   '
 
-  # Print one row with exact 106-cell padding.
-  # Keeping the separators outside the colored content prevents ANSI escape
-  # sequences from affecting terminal alignment.
+  # Each logo row is built to exactly content_width characters before the side bars.
   logo_row() {
     local t="$1" e="$2" r="$3" m="$4" i="$5" n="$6" a="$7" l="$8" g="$9" p="${10}" gt="${11}"
     printf '%s|%s  %s %s %s %s %s %s %s %s  %s %s %s%s|%s\n' \
