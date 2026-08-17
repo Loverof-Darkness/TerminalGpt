@@ -15,13 +15,13 @@ show_loading() {
   local cyan='\033[1;36m'
   local red='\033[1;31m'
   local gray='\033[0;37m'
-  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local frames=('|' '/' '-' '\\')
   local i
 
   printf '\n'
-  for i in {1..16}; do
+  for i in {1..20}; do
     printf '\r%b  Initializing TerminalGPT %s%b' "$cyan" "${frames[$((i % ${#frames[@]}))]}" "$reset"
-    sleep 0.055
+    sleep 0.07
   done
   printf '\r%b  Initializing TerminalGPT ✓%b\n' "$red" "$reset"
   printf '%b  Preparing installer...%b\n\n' "$gray" "$reset"
@@ -41,10 +41,10 @@ show_welcome() {
   declare -A GLYPHS=(
     [T]='█████|  █  |  █  |  █  |  █  |  █  |  █  '
     [E]='█████|██   |██   |████ |██   |██   |█████'
-    [R]='████ |██ ██|██ ██|████ |██ █ |██  █|██   █'
+    [R]='████ |██ ██|██ ██|████ |██  █|██ ██|██  ██'
     [M]='██ ██|█████|█████|██ ██|██ ██|██ ██|██ ██'
     [I]='█████|  █  |  █  |  █  |  █  |  █  |█████'
-    [N]='██ ██|██ ██|█████|█████|██ ██|██ ██|██ ██'
+    [N]='██ ██|█████|█████|█████|██ ██|██ ██|██ ██'
     [A]=' ███ |██ ██|██ ██|█████|██ ██|██ ██|██ ██'
     [L]='██   |██   |██   |██   |██   |██   |█████'
     [G]=' ████|██   |██   |██ ██|██ ██|██  █| ████'
@@ -58,18 +58,27 @@ show_welcome() {
 
   logo_row() {
     local row="$1" word='TERMINALGPT' i letter pattern
+    local -a parts
+
     for ((i=0; i<${#word}; i++)); do
       letter="${word:i:1}"
+
       if (( i < 8 )); then
         printf '%b' "$terminal_color"
       else
         printf '%b' "$gpt_color"
       fi
+
       pattern="${GLYPHS[$letter]}"
-      IFS='|' read -ra parts <<< "$pattern"
+      IFS='|' read -r -a parts <<< "$pattern"
       printf '%s' "${parts[$((row-1))]}"
       printf '%b' "$reset"
-      (( i < ${#word}-1 )) && printf ' '
+
+      # IMPORTANT: do not write `((condition)) && ...` with `set -e`.
+      # A false arithmetic test returns status 1 and would abort the script.
+      if (( i < ${#word}-1 )); then
+        printf ' '
+      fi
     done
   }
 
