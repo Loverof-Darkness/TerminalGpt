@@ -34,7 +34,7 @@ case "$provider_choice" in
   1)
     PROVIDER="nvidia"
     KEY_NAME="NVIDIA_API_KEY"
-    MODEL="${TERMINALGPT_MODEL:-openai/gpt-oss-120b}"
+    MODEL="${TERMINALGPT_MODEL:-openai/gpt-oss-20b}"
     BASE_URL="https://integrate.api.nvidia.com/v1"
     VALIDATE_URL="$BASE_URL/models"
     LABEL="NVIDIA API key"
@@ -69,6 +69,16 @@ load_saved_key() {
   local code
   code=$(validate_key "$saved")
   if [[ "$code" == 2* ]]; then
+    # Keep the existing key, but refresh provider/model configuration so the
+    # faster default model is used on the next launch.
+    {
+      printf 'TERMINALGPT_PROVIDER=%q\n' "$PROVIDER"
+      printf 'TERMINALGPT_MODEL=%q\n' "$MODEL"
+      printf 'TERMINALGPT_BASE_URL=%q\n' "$BASE_URL"
+      printf 'TERMINALGPT_API_KEY_ENV=%q\n' "$KEY_NAME"
+      printf '%s=%q\n' "$KEY_NAME" "$saved"
+    } > "$AUTH_FILE"
+    chmod 600 "$AUTH_FILE"
     printf '\033[1;32m✓ Saved %s is valid.\033[0m\n' "$LABEL"
     return 0
   fi
