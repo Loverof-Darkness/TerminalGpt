@@ -1,1 +1,0 @@
-TerminalGPT banner layout uses a fixed 69-column inner frame. TERMINAL is magenta and GPT is cyan.
