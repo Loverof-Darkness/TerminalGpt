@@ -25,19 +25,16 @@ show_loading() {
 }
 
 show_welcome() {
-  # ANSI Shadow-style wordmark, rendered directly so figlet is not required.
+  # Real ANSI Shadow-style wordmark, rendered directly so figlet is not required.
   # TERMINAL = bright magenta, GPT = bright red.
-  # The glyph shapes follow the ANSI Shadow FIGfont style.
   local magenta=$'\033[1;35m'
   local red=$'\033[1;31m'
-  local dark_magenta=$'\033[38;5;129m'
-  local dark_red=$'\033[38;5;88m'
   local cyan=$'\033[1;36m'
   local white=$'\033[1;97m'
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
 
-  # 6-row ANSI Shadow rendering for TERMINAL.
+  # ANSI Shadow glyphs for TERMINAL.
   local T1='████████╗' T2='╚══██╔══╝' T3='   ██║   ' T4='   ██║   ' T5='   ██║   ' T6='   ╚═╝   '
   local E1='███████╗' E2='██╔════╝' E3='█████╗  ' E4='██╔══╝  ' E5='███████╗' E6='╚══════╝'
   local R1='██████╗ ' R2='██╔══██╗' R3='██████╔╝' R4='██╔══██╗' R5='██║  ██║' R6='╚═╝  ╚═╝'
@@ -47,48 +44,33 @@ show_welcome() {
   local A1=' █████╗ ' A2='██╔══██╗' A3='███████║' A4='██╔══██║' A5='██║  ██║' A6='╚═╝  ╚═╝'
   local L1='██╗     ' L2='██║     ' L3='██║     ' L4='██║     ' L5='███████╗' L6='╚══════╝'
 
-  # 6-row ANSI Shadow rendering for GPT.
+  # ANSI Shadow glyphs for GPT.
   local G1=' ██████╗ ' G2='██╔════╝ ' G3='██║  ███╗' G4='██║   ██║' G5='╚██████╔╝' G6=' ╚═════╝ '
   local P1='██████╗ ' P2='██╔══██╗' P3='██████╔╝' P4='██╔═══╝ ' P5='██║     ' P6='╚═╝     '
   local GT1='████████╗' GT2='╚══██╔══╝' GT3='   ██║   ' GT4='   ██║   ' GT5='   ██║   ' GT6='   ╚═╝   '
 
-  printf '%s' "$dark_magenta"
-  printf '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s%s%s\n' "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" '  ' "$G1" "$P1" "$GT1" "$reset" "$reset" "$reset" "$reset" "$reset"
-  printf '%s' "$magenta"
-  printf '%s %s %s %s %s %s %s %s %s' "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" '  '
-  printf '%s' "$red"
-  printf '%s %s %s\n' "$G1" "$P1" "$GT1"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" "$reset"
+  printf '%s%s %s %s%s\n' "$red" "$G1" "$P1" "$GT1" "$reset"
 
-  printf '%s' "$magenta"
-  printf '%s %s %s %s %s %s %s %s %s' "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" '  '
-  printf '%s' "$red"
-  printf '%s %s %s\n' "$G2" "$P2" "$GT2"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" "$reset"
+  printf '%s%s %s %s%s\n' "$red" "$G2" "$P2" "$GT2" "$reset"
 
-  printf '%s' "$magenta"
-  printf '%s %s %s %s %s %s %s %s %s' "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" '  '
-  printf '%s' "$red"
-  printf '%s %s %s\n' "$G3" "$P3" "$GT3"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" "$reset"
+  printf '%s%s %s %s%s\n' "$red" "$G3" "$P3" "$GT3" "$reset"
 
-  printf '%s' "$magenta"
-  printf '%s %s %s %s %s %s %s %s %s' "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" '  '
-  printf '%s' "$red"
-  printf '%s %s %s\n' "$G4" "$P4" "$GT4"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" "$reset"
+  printf '%s%s %s %s%s\n' "$red" "$G4" "$P4" "$GT4" "$reset"
 
-  printf '%s' "$magenta"
-  printf '%s %s %s %s %s %s %s %s %s' "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" '  '
-  printf '%s' "$red"
-  printf '%s %s %s\n' "$G5" "$P5" "$GT5"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset"
+  printf '%s%s %s %s%s\n' "$red" "$G5" "$P5" "$GT5" "$reset"
 
-  printf '%s' "$magenta"
-  printf '%s %s %s %s %s %s %s %s %s' "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" '  '
-  printf '%s' "$red"
-  printf '%s %s %s\n' "$G6" "$P6" "$GT6"
-  printf '%s' "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
+  printf '%s%s %s %s%s\n' "$red" "$G6" "$P6" "$GT6" "$reset"
 
-  printf '%s  ░▒▓%s TERMINAL %s▓▒░   ░▒▓%s GPT %s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$reset"
-  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n' "$cyan" "$reset"
+  printf '%s  ░▒▓%sTERMINAL%s▓▒░     ░▒▓%sGPT%s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$cyan"
+  printf '%s────────────────────────────────────────────────────────────────────────────────────────────%s\n' "$cyan" "$reset"
   printf '%s                 %sTERMINAL-FIRST AI AGENT FOR YOUR SYSTEM%s                 %s\n' "$cyan" "$white" "$reset" "$cyan"
-  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n\n' "$cyan" "$reset"
+  printf '%s────────────────────────────────────────────────────────────────────────────────────────────%s\n\n' "$cyan" "$reset"
 
   printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
