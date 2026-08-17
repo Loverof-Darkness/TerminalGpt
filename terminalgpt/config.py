@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Settings:
-    model: str = os.getenv("TERMINALGPT_MODEL", "gpt-5.6")
+    model: str = os.getenv("TERMINALGPT_MODEL", "gpt-5.6-luna")
     server_host: str = os.getenv("TERMINALGPT_HOST", "127.0.0.1")
     server_port: int = int(os.getenv("TERMINALGPT_PORT", "8765"))
     approval_base_url: str = os.getenv("TERMINALGPT_APPROVAL_URL", "http://127.0.0.1:8765")
