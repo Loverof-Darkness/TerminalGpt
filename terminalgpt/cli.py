@@ -5,6 +5,7 @@ import asyncio
 import typer
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
 
 from .agent import run_agent
 from .config import settings
@@ -13,6 +14,17 @@ from .state import SessionState
 
 app = typer.Typer(add_completion=False)
 console = Console()
+
+NVIDIA_MODELS = [
+    ("gpt-oss-20b", "Fast general reasoning"),
+    ("gpt-oss-120b", "Stronger reasoning / agents"),
+    ("deepseek-v4-flash", "Fast coding / agents"),
+    ("deepseek-v4-pro", "Advanced reasoning / coding"),
+    ("nemotron-3-nano-30b-a3b", "Fast NVIDIA Nemotron"),
+    ("nemotron-3-super-120b-a12b", "Strong NVIDIA Nemotron"),
+    ("minimax-m3", "Reasoning / coding"),
+    ("glm-5.2", "Reasoning / coding"),
+]
 
 
 @app.command()
@@ -59,19 +71,46 @@ async def terminal_approval(command: str, thinking: ThinkingIndicator) -> bool:
         console.print("[yellow]Please enter Y or N.[/yellow]")
 
 
+def choose_model(current_model: str) -> str:
+    if settings.provider != "nvidia":
+        console.print(f"[yellow]Runtime model switching list is currently available for NVIDIA only.[/yellow]\nCurrent model: {current_model}")
+        return current_model
+
+    console.print("[bold cyan]Available NVIDIA models:[/bold cyan]")
+    for index, (model, description) in enumerate(NVIDIA_MODELS, start=1):
+        marker = " [green](current)[/green]" if model == current_model else ""
+        console.print(f"  [{index}] {model}{marker} — {description}")
+    console.print("  [0] Cancel")
+
+    while True:
+        choice = Prompt.ask("Select model", default="0").strip()
+        if choice == "0":
+            return current_model
+        if choice.isdigit() and 1 <= int(choice) <= len(NVIDIA_MODELS):
+            selected = NVIDIA_MODELS[int(choice) - 1][0]
+            console.print(f"[green]✓ Model changed to {selected}[/green]")
+            return selected
+        console.print("[yellow]Please choose a valid model number.[/yellow]")
+
+
 async def interactive_chat() -> None:
     state = SessionState()
     thinking = ThinkingIndicator()
+    current_model = settings.model
+
     console.print(
         Panel.fit(
             "[bold green]TerminalGPT is ready.[/bold green]\n"
-            f"Provider: {settings.provider} | Model: {settings.model}\n"
+            f"Provider: {settings.provider} | Model: {current_model}\n"
             "Persistent local memory: enabled\n"
             "Command approvals: terminal Y/N",
             title="TerminalGPT",
         )
     )
-    console.print("Type /exit to quit. Type /memory clear to erase saved conversation memory.")
+    console.print(
+        "Type /exit to quit. Type /model to change model. "
+        "Type /memory clear to erase saved conversation memory."
+    )
 
     while True:
         message = console.input("[bold cyan]you[/bold cyan]: ").strip()
@@ -84,15 +123,20 @@ async def interactive_chat() -> None:
             MemoryStore(settings.memory_path).clear()
             console.print("[green]✓ Persistent memory cleared.[/green]")
             continue
+        if command == "/model":
+            thinking.stop()
+            current_model = choose_model(current_model)
+            console.print(f"[cyan]Current model:[/cyan] {current_model}")
+            continue
         if not message:
             continue
 
         try:
             thinking.start("Thinking")
             approval = lambda cmd: terminal_approval(cmd, thinking)
-            output = await run_agent(message, state, approval)
+            output = await run_agent(message, state, approval, model=current_model)
             thinking.stop()
-            console.print(Panel(output, title="TerminalGPT"))
+            console.print(Panel(output, title=f"TerminalGPT · {current_model}"))
         except Exception as exc:
             thinking.stop()
             console.print(f"[red]Error:[/red] {type(exc).__name__}: {exc}")
