@@ -18,28 +18,28 @@ show_welcome() {
   local white='\033[1;97m'
   local gray='\033[0;37m'
   local red='\033[1;31m'
-  local width=73
+
+  # 5x7 ANSI block font. Every glyph is exactly 5 terminal cells wide.
+  # TERMINAL = magenta, GPT = red.
+  declare -A GLYPHS=(
+    [T]='█████|  █  |  █  |  █  |  █  |  █  |  █  '
+    [E]='█████|██   |██   |████ |██   |██   |█████'
+    [R]='████ |██ ██|██ ██|████ |██ █ |██  █|██   █'
+    [M]='██ ██|█████|█████|██ ██|██ ██|██ ██|██ ██'
+    [I]='█████|  █  |  █  |  █  |  █  |  █  |█████'
+    [N]='██ ██|██ ██|█████|█████|██ ██|██ ██|██ ██'
+    [A]=' ███ |██ ██|██ ██|█████|██ ██|██ ██|██ ██'
+    [L]='██   |██   |██   |██   |██   |██   |█████'
+    [G]=' ████|██   |██   |██ ██|██ ██|██  █| ████'
+    [P]='████ |██ ██|██ ██|████ |██   |██   |██   '
+  )
+
+  local width=71
   local horizontal
   horizontal=$(printf '%*s' "$width" '' | tr ' ' '─')
 
-  glyph() {
-    case "$1:$2" in
-      T:1) printf '█████';; T:2|T:3|T:4|T:5|T:6|T:7) printf '  █  ';;
-      E:1|E:4|E:7) printf '█████';; E:2|E:3|E:5|E:6) printf '██   ';;
-      R:1) printf '████ '; R:2) printf '██ ██'; R:3) printf '████ '; R:4|R:5|R:6|R:7) printf '██ ██';;
-      M:1|M:7) printf '██ ██'; M:2) printf '█████'; M:3) printf '██ ██'; M:4|M:5|M:6) printf '██ ██';;
-      I:1|I:7) printf '█████'; I:2|I:3|I:4|I:5|I:6) printf '  █  ';;
-      N:1|N:7) printf '██ ██'; N:2|N:3|N:4|N:5|N:6) printf '█████';;
-      A:1) printf ' ███ '; A:2|A:3) printf '██ ██'; A:4) printf '█████'; A:5|A:6|A:7) printf '██ ██';;
-      L:1|L:2|L:3|L:4|L:5|L:6) printf '██   '; L:7) printf '█████';;
-      G:1) printf ' ████'; G:2|G:3) printf '██   '; G:4) printf '██ ██'; G:5|G:6) printf '██ ██'; G:7) printf ' ████';;
-      P:1) printf '████ '; P:2|P:3) printf '██ ██'; P:4|P:5|P:6|P:7) printf '██   ';;
-      *) printf '     ';;
-    esac
-  }
-
   logo_row() {
-    local row="$1" word='TERMINALGPT' i letter
+    local row="$1" word='TERMINALGPT' i j letter pattern
     for ((i=0; i<${#word}; i++)); do
       letter="${word:i:1}"
       if (( i < 8 )); then
@@ -47,17 +47,18 @@ show_welcome() {
       else
         printf '%b' "$gpt_color"
       fi
-      glyph "$letter" "$row"
+      pattern="${GLYPHS[$letter]}"
+      IFS='|' read -ra parts <<< "$pattern"
+      printf '%s' "${parts[$((row-1))]}"
       printf '%b' "$reset"
-      if (( i < ${#word}-1 )); then printf ' '; fi
+      (( i < ${#word}-1 )) && printf ' '
     done
   }
 
   printf '\n'
   printf '%b\n' "${border}╭${horizontal}╮${reset}"
   for row in 1 2 3 4 5 6 7; do
-    printf '%b' "${border}│${reset}"
-    printf '  '
+    printf '%b' "${border}│${reset}  "
     logo_row "$row"
     printf '  '
     printf '%b\n' "${border}│${reset}"
@@ -82,20 +83,32 @@ show_welcome() {
   printf '%b\n' "the ${white}terminalgpt${reset}${gray} command under ${white}$BIN_DIR${reset}${gray}."
   printf '\n'
 
-  if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then return 0; fi
+  if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
+    return 0
+  fi
+
   local answer
   if [[ ! -r /dev/tty ]]; then
     printf '%b\n' "${red}Unable to read confirmation from the terminal.${reset}"
     exit 1
   fi
+
   while true; do
     printf '%b' "${border}Continue with installation? [Y/n]: ${reset}"
     IFS= read -r answer < /dev/tty || exit 1
     answer="${answer:-Y}"
     case "$answer" in
-      Y|y|yes|YES|Yes) printf '\n'; return 0 ;;
-      N|n|no|NO|No) printf '%b\n' "${gray}Installation cancelled.${reset}"; exit 0 ;;
-      *) printf '%b\n' "${red}Please answer Y or N.${reset}" ;;
+      Y|y|yes|YES|Yes)
+        printf '\n'
+        return 0
+        ;;
+      N|n|no|NO|No)
+        printf '%b\n' "${gray}Installation cancelled.${reset}"
+        exit 0
+        ;;
+      *)
+        printf '%b\n' "${red}Please answer Y or N.${reset}"
+        ;;
     esac
   done
 }
@@ -115,6 +128,7 @@ if ! "$PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11)
 fi
 
 mkdir -p "$INSTALL_ROOT" "$BIN_DIR"
+
 if command -v git >/dev/null 2>&1; then
   git clone --depth 1 --filter=blob:none "$REPO" "$TMP_DIR/src" >/dev/null 2>&1
 else
