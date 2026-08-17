@@ -10,6 +10,23 @@ TMP_DIR="$(mktemp -d)"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
+show_loading() {
+  local reset='\033[0m'
+  local cyan='\033[1;36m'
+  local red='\033[1;31m'
+  local gray='\033[0;37m'
+  local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local i
+
+  printf '\n'
+  for i in {1..16}; do
+    printf '\r%b  Initializing TerminalGPT %s%b' "$cyan" "${frames[$((i % ${#frames[@]}))]}" "$reset"
+    sleep 0.055
+  done
+  printf '\r%b  Initializing TerminalGPT ✓%b\n' "$red" "$reset"
+  printf '%b  Preparing installer...%b\n\n' "$gray" "$reset"
+}
+
 show_welcome() {
   local reset='\033[0m'
   local border='\033[1;36m'
@@ -34,12 +51,13 @@ show_welcome() {
     [P]='████ |██ ██|██ ██|████ |██   |██   |██   '
   )
 
-  local width=71
+  # ASCII-only border avoids locale/encoding replacement glyphs in terminals.
+  local width=73
   local horizontal
-  horizontal=$(printf '%*s' "$width" '' | tr ' ' '─')
+  horizontal=$(printf '%*s' "$width" '' | tr ' ' '-')
 
   logo_row() {
-    local row="$1" word='TERMINALGPT' i j letter pattern
+    local row="$1" word='TERMINALGPT' i letter pattern
     for ((i=0; i<${#word}; i++)); do
       letter="${word:i:1}"
       if (( i < 8 )); then
@@ -55,23 +73,22 @@ show_welcome() {
     done
   }
 
-  printf '\n'
-  printf '%b\n' "${border}╭${horizontal}╮${reset}"
+  printf '%b\n' "${border}+${horizontal}+${reset}"
   for row in 1 2 3 4 5 6 7; do
-    printf '%b' "${border}│${reset}  "
+    printf '%b' "${border}|${reset}  "
     logo_row "$row"
     printf '  '
-    printf '%b\n' "${border}│${reset}"
+    printf '%b\n' "${border}|${reset}"
   done
-  printf '%b\n' "${border}├${horizontal}┤${reset}"
+  printf '%b\n' "${border}+${horizontal}+${reset}"
 
   local tagline='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
   local left=$(( (width - ${#tagline}) / 2 ))
   local right=$(( width - left - ${#tagline} ))
-  printf '%b' "${border}│${reset}"
+  printf '%b' "${border}|${reset}"
   printf '%*s%b%*s' "$left" '' "${white}${tagline}${reset}" "$right" ''
-  printf '%b\n' "${border}│${reset}"
-  printf '%b\n' "${border}╰${horizontal}╯${reset}"
+  printf '%b\n' "${border}|${reset}"
+  printf '%b\n' "${border}+${horizontal}+${reset}"
   printf '\n'
 
   printf '%b\n' "${white}TerminalGPT${reset} is a terminal-first AI agent that can reason about your machine,"
@@ -113,6 +130,7 @@ show_welcome() {
   done
 }
 
+show_loading
 show_welcome
 
 command -v python3 >/dev/null 2>&1 || {
