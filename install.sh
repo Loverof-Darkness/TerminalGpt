@@ -25,7 +25,7 @@ show_loading() {
 }
 
 show_welcome() {
-  # ANSI Shadow-style wordmark inside a fixed-width ASCII-safe border.
+  # ANSI Shadow-style wordmark inside one canonical fixed-width box.
   # TERMINAL = bright magenta, GPT = bright red.
   local magenta=$'\033[1;35m'
   local red=$'\033[1;31m'
@@ -34,11 +34,12 @@ show_welcome() {
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
 
-  # Each logo row is 102 visible columns wide. The box uses 2 spaces of
-  # padding on both sides, so the inside width is exactly 106 columns.
-  local box_width=106
+  # The logo artwork is 102 terminal cells wide. The box content width is 106
+  # cells: exactly two spaces of left/right padding around every logo row.
+  local logo_width=102
+  local content_width=106
   local border_line
-  border_line=$(printf '%*s' "$box_width" '' | tr ' ' '-')
+  border_line=$(printf '%*s' "$content_width" '' | tr ' ' '-')
 
   local T1='████████╗' T2='╚══██╔══╝' T3='   ██║   ' T4='   ██║   ' T5='   ██║   ' T6='   ╚═╝   '
   local E1='███████╗' E2='██╔════╝' E3='█████╗  ' E4='██╔══╝  ' E5='███████╗' E6='╚══════╝'
@@ -53,29 +54,32 @@ show_welcome() {
   local P1='██████╗ ' P2='██╔══██╗' P3='██████╔╝' P4='██╔═══╝ ' P5='██║     ' P6='╚═╝     '
   local GT1='████████╗' GT2='╚══██╔══╝' GT3='   ██║   ' GT4='   ██║   ' GT5='   ██║   ' GT6='   ╚═╝   '
 
+  # Print one row with exact 106-cell padding.
+  # Keeping the separators outside the colored content prevents ANSI escape
+  # sequences from affecting terminal alignment.
+  logo_row() {
+    local t="$1" e="$2" r="$3" m="$4" i="$5" n="$6" a="$7" l="$8" g="$9" p="${10}" gt="${11}"
+    printf '%s|%s  %s %s %s %s %s %s %s %s  %s %s %s%s|%s\n' \
+      "$cyan" "$magenta" "$t" "$e" "$r" "$m" "$i" "$n" "$a" "$l" "$reset" "$red" "$g" " $p $gt" "$cyan" "$reset"
+  }
+
   printf '%s+%s+%s\n' "$cyan" "$border_line" "$reset"
+  logo_row "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" "$G1" "$P1" "$GT1"
+  logo_row "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" "$G2" "$P2" "$GT2"
+  logo_row "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" "$G3" "$P3" "$GT3"
+  logo_row "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" "$G4" "$P4" "$GT4"
+  logo_row "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$G5" "$P5" "$GT5"
+  logo_row "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$G6" "$P6" "$GT6"
 
-  printf '%s|  %s%s %s %s %s %s %s %s %s  %s%s %s %s%s  |%s\n' \
-    "$cyan" "$magenta" "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" "$reset" "$red" "$G1" "$P1" "$GT1" "$cyan" "$reset"
-  printf '%s|  %s%s %s %s %s %s %s %s %s  %s%s %s %s%s  |%s\n' \
-    "$cyan" "$magenta" "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" "$reset" "$red" "$G2" "$P2" "$GT2" "$cyan" "$reset"
-  printf '%s|  %s%s %s %s %s %s %s %s %s  %s%s %s %s%s  |%s\n' \
-    "$cyan" "$magenta" "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" "$reset" "$red" "$G3" "$P3" "$GT3" "$cyan" "$reset"
-  printf '%s|  %s%s %s %s %s %s %s %s %s  %s%s %s %s%s  |%s\n' \
-    "$cyan" "$magenta" "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" "$reset" "$red" "$G4" "$P4" "$GT4" "$cyan" "$reset"
-  printf '%s|  %s%s %s %s %s %s %s %s %s  %s%s %s %s%s  |%s\n' \
-    "$cyan" "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset" "$red" "$G5" "$P5" "$GT5" "$cyan" "$reset"
-  printf '%s|  %s%s %s %s %s %s %s %s %s  %s%s %s %s%s  |%s\n' \
-    "$cyan" "$magenta" "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset" "$red" "$G6" "$P6" "$GT6" "$cyan" "$reset"
+  local legend='░▒▓ TERMINAL ▓▒░     ░▒▓ GPT ▓▒░'
+  local tag='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
+  local legend_left=$(( (content_width - ${#legend}) / 2 ))
+  local legend_right=$(( content_width - legend_left - ${#legend} ))
+  local tag_left=$(( (content_width - ${#tag}) / 2 ))
+  local tag_right=$(( content_width - tag_left - ${#tag} ))
 
-  printf '%s|%*s%s  ░▒▓%sTERMINAL%s▓▒░     ░▒▓%sGPT%s▓▒░  %*s|%s\n' \
-    "$cyan" 23 '' "$cyan" "$magenta" "$reset" "$red" "$reset" 23 '' "$reset"
-
-  local tagline='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
-  local left=$(( (box_width - ${#tagline}) / 2 ))
-  local right=$(( box_width - left - ${#tagline} ))
-  printf '%s|%*s%s%s%s%*s|%s\n' "$cyan" "$left" '' "$white" "$tagline" "$reset" "$right" '' "$cyan" "$reset"
-
+  printf '%s|%*s%s%s%s%*s|%s\n' "$cyan" "$legend_left" '' "$white" "$legend" "$reset" "$legend_right" '' "$cyan" "$reset"
+  printf '%s|%*s%s%s%s%*s|%s\n' "$cyan" "$tag_left" '' "$white" "$tag" "$reset" "$tag_right" '' "$cyan" "$reset"
   printf '%s+%s+%s\n\n' "$cyan" "$border_line" "$reset"
 
   printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
