@@ -66,7 +66,7 @@ show_welcome() {
   printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset"
   printf '%s%s %s %s%s\n' "$red" "$G5" "$P5" "$GT5" "$reset"
 
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
   printf '%s%s %s %s%s\n' "$red" "$G6" "$P6" "$GT6" "$reset"
 
   printf '%s  ░▒▓%sTERMINAL%s▓▒░     ░▒▓%sGPT%s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$cyan"
@@ -136,57 +136,98 @@ rm -rf "$VENV"
 mkdir -p "$AUTH_DIR"
 chmod 700 "$AUTH_DIR"
 
-if [[ -s "$AUTH_FILE" ]]; then
-  printf '\033[1;36m✓ OpenAI API authorization already configured.\033[0m\n'
-elif [[ -n "${OPENAI_API_KEY:-}" ]]; then
-  printf '\033[1;36mValidating existing OPENAI_API_KEY...\033[0m\n'
-  http_code=$(curl -sS -o /dev/null -w '%{http_code}' \
-    -H "Authorization: Bearer ${OPENAI_API_KEY}" \
-    "https://api.openai.com/v1/models" || true)
-  if [[ "$http_code" != 2* ]]; then
-    printf '\033[1;31mExisting OPENAI_API_KEY was rejected (HTTP %s).\033[0m\n' "$http_code"
-    exit 1
-  fi
-  printf 'OPENAI_API_KEY=%q\n' "$OPENAI_API_KEY" > "$AUTH_FILE"
+save_and_finish() {
+  local key="$1"
+  printf 'OPENAI_API_KEY=%q\n' "$key" > "$AUTH_FILE"
   chmod 600 "$AUTH_FILE"
-  printf '\033[1;32m✓ OpenAI API authorized and saved securely.\033[0m\n'
-else
-  printf '\n\033[1;36mOpenAI API authorization\033[0m\n'
-  printf 'TerminalGPT needs an OpenAI API key to use the AI agent.\n'
-  printf 'Your key will be validated against the OpenAI API and stored locally with restricted permissions.\n\n'
+  unset key
+  printf '\033[1;32m✓ OpenAI API authorized successfully.\033[0m\n'
+  printf '\033[1;36m✓ Credential saved to %s\033[0m\n' "$AUTH_FILE"
+}
 
-  local_api_key=''
-  while [[ -z "$local_api_key" ]]; do
-    printf '\033[1;36mEnter OpenAI API key: \033[0m'
-    IFS= read -r -s local_api_key < /dev/tty || exit 1
-    printf '\n'
-    [[ -n "$local_api_key" ]] || printf '\033[1;31mAPI key cannot be empty.\033[0m\n'
-  done
+validate_key() {
+  local key="$1"
+  curl -sS -o /dev/null -w '%{http_code}' \
+    -H "Authorization: Bearer ${key}" \
+    "https://api.openai.com/v1/models" || true
+}
 
-  printf '\033[1;36mAuthorizing...\033[0m\n'
-  http_code=$(curl -sS -o /dev/null -w '%{http_code}' \
-    -H "Authorization: Bearer ${local_api_key}" \
-    "https://api.openai.com/v1/models" || true)
+if [[ -s "$AUTH_FILE" ]]; then
+  # Existing locally stored authorization is preferred over any environment value.
+  # shellcheck disable=SC1090
+  source "$AUTH_FILE"
+  if [[ -n "${OPENAI_API_KEY:-}" ]]; then
+    http_code=$(validate_key "$OPENAI_API_KEY")
+    case "$http_code" in
+      2*)
+        printf '\033[1;36m✓ OpenAI API authorization already configured.\033[0m\n'
+        ;;
+      401)
+        printf '\033[1;33mStored OpenAI API key is no longer valid.\033[0m\n'
+        rm -f "$AUTH_FILE"
+        ;;
+      *)
+        printf '\033[1;31mStored OpenAI API authorization check failed (HTTP %s).\033[0m\n' "$http_code"
+        exit 1
+        ;;
+    esac
+  fi
+fi
 
-  case "$http_code" in
-    2*)
-      printf 'OPENAI_API_KEY=%q\n' "$local_api_key" > "$AUTH_FILE"
-      chmod 600 "$AUTH_FILE"
-      unset local_api_key
-      printf '\033[1;32m✓ OpenAI API authorized successfully.\033[0m\n'
-      printf '\033[1;36m✓ Credential saved to %s\033[0m\n' "$AUTH_FILE"
-      ;;
-    401)
-      unset local_api_key
-      printf '\033[1;31m✗ Invalid OpenAI API key. Installation stopped.\033[0m\n'
-      exit 1
-      ;;
-    *)
-      unset local_api_key
-      printf '\033[1;31m✗ OpenAI API authorization failed (HTTP %s).\033[0m\n' "$http_code"
-      exit 1
-      ;;
-  esac
+if [[ ! -s "$AUTH_FILE" ]]; then
+  candidate_key="${OPENAI_API_KEY:-}"
+
+  if [[ -n "$candidate_key" ]]; then
+    printf '\033[1;36mValidating existing OPENAI_API_KEY...\033[0m\n'
+    http_code=$(validate_key "$candidate_key")
+    case "$http_code" in
+      2*)
+        save_and_finish "$candidate_key"
+        ;;
+      401)
+        printf '\033[1;33mExisting OPENAI_API_KEY is invalid or expired (HTTP 401).\033[0m\n'
+        printf '\033[1;36mPlease enter a new OpenAI API key.\033[0m\n\n'
+        ;;
+      *)
+        printf '\033[1;31mOpenAI API authorization failed (HTTP %s).\033[0m\n' "$http_code"
+        exit 1
+        ;;
+    esac
+  fi
+
+  if [[ ! -s "$AUTH_FILE" ]]; then
+    printf '\n\033[1;36mOpenAI API authorization\033[0m\n'
+    printf 'TerminalGPT needs an OpenAI API key to use the AI agent.\n'
+    printf 'The key will be validated and stored locally with restricted permissions.\n\n'
+
+    local_api_key=''
+    while [[ -z "$local_api_key" ]]; do
+      printf '\033[1;36mEnter OpenAI API key: \033[0m'
+      IFS= read -r -s local_api_key < /dev/tty || exit 1
+      printf '\n'
+      [[ -n "$local_api_key" ]] || printf '\033[1;31mAPI key cannot be empty.\033[0m\n'
+    done
+
+    printf '\033[1;36mAuthorizing...\033[0m\n'
+    http_code=$(validate_key "$local_api_key")
+
+    case "$http_code" in
+      2*)
+        save_and_finish "$local_api_key"
+        unset local_api_key
+        ;;
+      401)
+        unset local_api_key
+        printf '\033[1;31m✗ Invalid OpenAI API key. Installation stopped.\033[0m\n'
+        exit 1
+        ;;
+      *)
+        unset local_api_key
+        printf '\033[1;31m✗ OpenAI API authorization failed (HTTP %s).\033[0m\n' "$http_code"
+        exit 1
+        ;;
+    esac
+  fi
 fi
 
 cat > "$BIN_DIR/terminalgpt" <<EOF
