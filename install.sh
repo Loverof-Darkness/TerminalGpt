@@ -20,7 +20,7 @@ show_welcome() {
     case "$1:$2" in
       T:1) printf '█████';; T:2|T:3|T:4|T:5) printf '  █  ';;
       E:1|E:3|E:5) printf '█████';; E:2|E:4) printf '██   ';;
-      R:1) printf '████ '; ; R:2) printf '██ ██';; R:3) printf '████ '; ; R:4|R:5) printf '██ ██';;
+      R:1) printf '████ ';; R:2) printf '██ ██';; R:3) printf '████ ';; R:4|R:5) printf '██ ██';;
       M:1|M:5) printf '██ ██';; M:2|M:3|M:4) printf '█████';;
       I:1|I:5) printf '█████';; I:2|I:3|I:4) printf '  █  ';;
       N:1|N:5) printf '██ ██';; N:2|N:3|N:4) printf '█████';;
@@ -43,7 +43,7 @@ show_welcome() {
       fi
       glyph "$letter" "$row"
       printf '%b' "$reset"
-      (( i < ${#word}-1 )) && printf ' '
+      if (( i < ${#word}-1 )); then printf ' '; fi
     done
   }
 
