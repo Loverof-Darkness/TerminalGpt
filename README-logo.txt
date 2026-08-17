@@ -1,0 +1,1 @@
+Branding: TERMINAL uses magenta; GPT uses cyan. Fixed 69-column installer frame.
