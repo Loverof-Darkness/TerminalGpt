@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import threading
 import time
-import webbrowser
 
 import httpx
 import typer
@@ -58,32 +58,68 @@ def ensure_server() -> subprocess.Popen | None:
     raise RuntimeError(f"TerminalGPT control server did not start at {url}")
 
 
+def _approve_pending(token: str, session_id: str) -> None:
+    """Poll the local control plane and resolve command approvals in the terminal."""
+    seen: set[str] = set()
+    url = server_url()
+    with httpx.Client(timeout=10) as client:
+        while True:
+            try:
+                response = client.get(
+                    f"{url}/api/state",
+                    params={"token": token, "session_id": session_id},
+                    timeout=2,
+                )
+                response.raise_for_status()
+                pending = response.json().get("pending_approvals", [])
+            except Exception:
+                return
+
+            for approval in pending:
+                approval_id = approval.get("id")
+                if not approval_id or approval_id in seen:
+                    continue
+                seen.add(approval_id)
+                command = approval.get("command", "")
+                console.print(Panel(command, title="Command approval", border_style="yellow"))
+                answer = Prompt.ask("Approve this command?", choices=["y", "n"], default="n")
+                try:
+                    client.post(
+                        f"{url}/api/approve",
+                        json={
+                            "token": token,
+                            "session_id": session_id,
+                            "approval_id": approval_id,
+                            "approved": answer.lower() == "y",
+                        },
+                        timeout=5,
+                    )
+                except Exception:
+                    return
+            time.sleep(0.15)
+
+
 @app.command()
 def start():
-    """Start the TerminalGPT browser control plane."""
+    """Start the TerminalGPT local control plane."""
     run_server()
 
 
 @app.command()
 def pair():
-    """Create a one-time browser pairing approval page."""
+    """Create an optional browser pairing page for the local control plane."""
     ensure_server()
     with httpx.Client() as client:
         response = client.post(f"{server_url()}/api/session", timeout=10)
         response.raise_for_status()
         data = response.json()
-    url = server_url() + data["pair_url"]
-    console.print(Panel.fit(f"Open once to approve this terminal session:\n{url}"))
-    try:
-        webbrowser.open(url)
-    except Exception:
-        pass
-    console.print("Pairing token is single-use and expires automatically.")
+    console.print(Panel.fit("Browser pairing is optional. Use `terminalgpt chat` for terminal-only mode."))
+    console.print(f"Session created: {data['session_id']}")
 
 
 @app.command()
 def chat():
-    """Run an interactive terminal session and automatically start the local control plane."""
+    """Run an interactive terminal-only session using the stored OpenAI API key."""
     server_process = ensure_server()
     try:
         with httpx.Client() as client:
@@ -91,27 +127,39 @@ def chat():
             response.raise_for_status()
             data = response.json()
         token, session_id = data["token"], data["session_id"]
-        url = server_url() + data["pair_url"]
-        console.print(Panel.fit(f"Approve this session in a browser:\n{url}"))
-        try:
-            webbrowser.open(url)
-        except Exception:
-            pass
+
+        console.print(Panel.fit("TerminalGPT is ready. Browser authentication is disabled.\nCommand approvals will appear here in the terminal."))
         console.print("Type /exit to quit.")
+
         with httpx.Client(timeout=None) as client:
             while True:
                 message = Prompt.ask("[bold cyan]you[/bold cyan]")
                 if message.strip().lower() in {"/exit", "/quit"}:
                     break
-                try:
-                    r = client.post(
-                        f"{server_url()}/api/prompt",
-                        json={"token": token, "session_id": session_id, "message": message},
-                    )
-                    r.raise_for_status()
-                    console.print(Panel(r.json()["output"], title="TerminalGPT"))
-                except Exception as exc:
-                    console.print(f"[red]Error:[/red] {exc}")
+
+                result: dict[str, str] = {}
+                error: list[Exception] = []
+
+                def submit_prompt() -> None:
+                    try:
+                        r = client.post(
+                            f"{server_url()}/api/prompt",
+                            json={"token": token, "session_id": session_id, "message": message},
+                        )
+                        r.raise_for_status()
+                        result["output"] = r.json()["output"]
+                    except Exception as exc:
+                        error.append(exc)
+
+                worker = threading.Thread(target=submit_prompt, daemon=True)
+                worker.start()
+                _approve_pending(token, session_id)
+                worker.join()
+
+                if error:
+                    console.print(f"[red]Error:[/red] {error[0]}")
+                elif "output" in result:
+                    console.print(Panel(result["output"], title="TerminalGPT"))
     finally:
         if server_process is not None:
             server_process.terminate()
