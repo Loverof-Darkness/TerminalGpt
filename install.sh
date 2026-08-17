@@ -10,6 +10,73 @@ TMP_DIR="$(mktemp -d)"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
+# ─────────────────────────────────────────────────────────────────────────────
+# TerminalGPT installer welcome screen
+# ─────────────────────────────────────────────────────────────────────────────
+show_welcome() {
+  local reset="\033[0m"
+  local cyan="\033[1;36m"
+  local magenta="\033[1;35m"
+  local white="\033[1;97m"
+  local gray="\033[0;37m"
+  local red="\033[1;31m"
+
+  printf '\n'
+  printf "%b" "${cyan}╭──────────────────────────────────────────────────────────────────────────────╮${reset}\n"
+  printf "%b" "${cyan}│${reset}                                                                            ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}   ${magenta}████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗      ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}   ${magenta}╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║      ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}      ${magenta}██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║      ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}      ${magenta}██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║      ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}      ${magenta}██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗ ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}      ${magenta}╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝ ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}                                                                            ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}                 ${white}Terminal-first AI agent for your system${reset}                 ${cyan}│${reset}\n"
+  printf "%b" "${cyan}│${reset}                                                                            ${cyan}│${reset}\n"
+  printf "%b" "${cyan}╰──────────────────────────────────────────────────────────────────────────────╯${reset}\n"
+  printf '\n'
+  printf "%b\n" "${white}TerminalGPT${reset} is a terminal-first AI agent that can reason about your machine,"
+  printf "%b\n" "inspect files and system state, run approved shell commands, and use browser-based"
+  printf "%b\n" "human approval before performing sensitive actions."
+  printf '\n'
+  printf "%b\n" "${gray}This installer will download the latest TerminalGPT source from GitHub,"
+  printf "%b\n" "create an isolated Python environment, install dependencies, and install"
+  printf "%b\n" "the ${white}terminalgpt${reset}${gray} command under ${white}$BIN_DIR${reset}${gray}."
+  printf '\n'
+
+  if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
+    return 0
+  fi
+
+  local answer
+  if [[ ! -r /dev/tty ]]; then
+    printf "%b\n" "${red}Unable to read confirmation from the terminal.${reset}"
+    printf '%b\n' "Use TERMINALGPT_ASSUME_YES=1 only when running from a trusted non-interactive environment."
+    exit 1
+  fi
+
+  while true; do
+    printf "%b" "${cyan}Continue with installation? [Y/n]: ${reset}"
+    IFS= read -r answer < /dev/tty || exit 1
+    answer="${answer:-Y}"
+    case "${answer}" in
+      Y|y|yes|YES|Yes)
+        printf '\n'
+        return 0
+        ;;
+      N|n|no|NO|No)
+        printf "%b\n" "${gray}Installation cancelled.${reset}"
+        exit 0
+        ;;
+      *)
+        printf "%b\n" "${red}Please answer Y or N.${reset}"
+        ;;
+    esac
+  done
+}
+
+show_welcome
+
 command -v python3 >/dev/null 2>&1 || {
   echo "TerminalGPT requires Python 3.11+. Install python3 and run this command again." >&2
   exit 1
