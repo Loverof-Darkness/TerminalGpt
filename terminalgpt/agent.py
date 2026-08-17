@@ -16,10 +16,11 @@ You are TerminalGPT, an online terminal-first computer agent.
 The model runs in the cloud. The user's machine is used only for local inspection and
 for commands explicitly approved by the user in the terminal.
 
-Work iteratively. Inspect the environment before making changes. Explain the plan briefly.
-Use execute_command when local inspection or a change is required. Every command is shown
-and must be approved by the human in the terminal before execution. Never bypass approval.
-Prefer safe, reversible commands. For destructive commands, clearly explain what will happen.
+Be concise and action-oriented. Work iteratively: inspect only what is needed, execute the
+minimum safe command needed, then report the result. Do not suggest extra commands after a
+task is complete unless they are necessary. Every shell command must be shown to and approved
+by the human in the terminal before execution. Never bypass approval. Prefer safe, reversible
+commands. For destructive commands, clearly explain what will happen before asking for approval.
 """.strip()
 
 
@@ -79,16 +80,14 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
 
     state.emit("agent_started", message=message, provider=settings.provider, model=settings.model)
 
-    # Direct Chat Completions is used deliberately instead of the Agents SDK runner:
-    # NVIDIA's hosted OpenAI-compatible endpoint supports /chat/completions directly,
-    # while the SDK may select a different transport/path for custom providers.
-    for _ in range(8):
+    for _ in range(6):
         response = await client.chat.completions.create(
             model=settings.model,
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
-            max_tokens=2048,
+            max_tokens=1024,
+            temperature=0.2,
         )
 
         choice = response.choices[0]
@@ -118,6 +117,7 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
             state.emit("agent_finished", output=output)
             return output
 
+        # NVIDIA's GPT-OSS NIM processes tool calls sequentially.
         for call in tool_calls:
             name = call.function.name
             try:
