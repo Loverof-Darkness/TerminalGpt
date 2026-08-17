@@ -21,51 +21,60 @@ show_loading() {
 }
 
 show_welcome() {
-  # Large ANSI block wordmark inspired by the reference style.
+  # Large 5x7 block-font ANSI wordmark.
   # TERMINAL = bright magenta, GPT = bright red.
-  printf '\033[1;35m'
-  printf '█████ █████ █████  ███   ███  ████  ████  █████  ██  ███  ██     ██\n'
-  printf '  █   ██      █    █ ██ █ ██  ██  ██ ██    ██     ██   █   ██     ██\n'
-  printf '  █   ████    █    █  ███  █  ██  ██ ██    ████    █   █   ██     ██\n'
-  printf '  █   ██      █    █   █   █  ██  ██ ██    ██      █   █   ██     ██\n'
-  printf '  █   ██      █    █       █  ██  ██ ██    ██      █   █   ██     ██\n'
-  printf '  █   ██      █    █       █  ██  ██ ██    ██      █   █   ██     ██\n'
-  printf '  █   █████   █    █       █  █████  ████  █████   █   █    █████  █████\n'
-  printf '\033[0m'
+  local magenta=$'\033[1;35m'
+  local red=$'\033[1;31m'
+  local cyan=$'\033[1;36m'
+  local white=$'\033[1;97m'
+  local gray=$'\033[0;37m'
+  local reset=$'\033[0m'
 
-  printf '\033[1;31m'
-  printf ' █████  █████  █████\n'
-  printf '██      ██  ██ ██\n'
-  printf '██  ███ █████  ██\n'
-  printf '██   ██ ██  ██ ██\n'
-  printf '██   ██ ██  ██ ██\n'
-  printf '██   ██ ██  ██ ██\n'
-  printf ' █████  ██  ██ █████\n'
-  printf '\033[0m\n'
+  local -a T E R M I N A L G P
+  T=('█████' '  █  ' '  █  ' '  █  ' '  █  ' '  █  ' '  █  ')
+  E=('█████' '██   ' '██   ' '████ ' '██   ' '██   ' '█████')
+  R=('████ ' '██ ██' '██ ██' '████ ' '██ ██' '██  █' '██   █')
+  M=('█   █' '██ ██' '█████' '█ █ █' '█   █' '█   █' '█   █')
+  I=('█████' '  █  ' '  █  ' '  █  ' '  █  ' '  █  ' '█████')
+  N=('█   █' '██  █' '██  █' '█ █ █' '█  ██' '█  ██' '█   █')
+  A=(' ███ ' '█   █' '█   █' '█████' '█   █' '█   █' '█   █')
+  L=('█    ' '█    '█    ' '█    ' '█    ' '█    ' '█████')
+  G=(' ████' '██   ' '█    ' '█ ███' '█   █' '█   █' ' ████')
+  P=('████ ' '█   █' '█   █' '████ ' '█    ' '█    ' '█    ')
 
-  printf '\033[1;36m══════════════════════════════════════════════════════════════════════════════\033[0m\n'
-  printf '\033[1;97m                 Terminal-first AI agent for your system\033[0m\n'
-  printf '\033[1;36m══════════════════════════════════════════════════════════════════════════════\033[0m\n\n'
+  local row i
+  for row in {0..6}; do
+    printf '%s' "$magenta"
+    printf '%s ' "${T[$row]}" "${E[$row]}" "${R[$row]}" "${M[$row]}" "${I[$row]}" "${N[$row]}" "${A[$row]}" "${L[$row]}"
+    printf '%s' "$reset"
+    printf '%s' "$red"
+    printf '%s %s %s' "${G[$row]}" "${P[$row]}" "${T[$row]}"
+    printf '%s\n' "$reset"
+  done
 
-  printf '\033[1;97mTerminalGPT\033[0m is a terminal-first AI agent that can reason about your machine,\n'
+  printf '%s==========================================================================%s\n' "$cyan" "$reset"
+  printf '%s              %sTerminal-first AI agent for your system%s              %s\n' "$cyan" "$white" "$reset" "$cyan"
+  printf '%s==========================================================================%s\n\n' "$cyan" "$reset"
+
+  printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
   printf 'human approval before performing sensitive actions.\n\n'
-  printf '\033[0;37mThis installer will download the latest TerminalGPT source from GitHub,\n'
+  printf '%sThis installer will download the latest TerminalGPT source from GitHub,%s\n' "$gray" "$reset"
   printf 'create an isolated Python environment, install dependencies, and install\n'
-  printf 'the \033[1;97mterminalgpt\033[0m command under \033[1;97m%s\033[0m.\033[0m\n\n' "$BIN_DIR"
+  printf 'the %sterminalgpt%s command under %s%s%s.\n\n' "$white" "$reset" "$white" "$BIN_DIR" "$reset"
 
   if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
     return 0
   fi
 
   if [[ ! -r /dev/tty ]]; then
-    printf '\033[1;31mUnable to read confirmation from the terminal.\033[0m\n'
+    printf '%sUnable to read confirmation from the terminal.%s\n' "$red" "$reset"
     exit 1
   fi
 
   local answer
   while true; do
-    printf '\033[1;36mContinue with installation? [Y/n]: \033[0m'
+    printf '%sContinue with installation? [Y/n]: %s' "$cyan" "$reset"
     IFS= read -r answer < /dev/tty || exit 1
     answer="${answer:-Y}"
     case "$answer" in
@@ -78,7 +87,7 @@ show_welcome() {
         exit 0
         ;;
       *)
-        printf '\033[1;31mPlease answer Y or N.\033[0m\n'
+        printf '%sPlease answer Y or N.%s\n' "$red" "$reset"
         ;;
     esac
   done
