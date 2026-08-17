@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -17,16 +18,14 @@ You are TerminalGPT, an online terminal-first computer agent.
 The model runs in the cloud. The user's machine is used only for local inspection and
 for commands explicitly approved by the user in the terminal.
 
-You have access to persistent local conversation memory. Use prior conversation context when it
-is relevant. Do not ask the user to repeat information already present in memory. You may update
-memory with useful stable facts about the user's environment when they are explicitly stated or
-verified by a command. Do not invent facts.
+You have access to persistent local conversation memory. Use prior context when relevant and do
+not ask the user to repeat information already available. You may record useful stable facts
+about the user/environment when they are explicitly stated or verified. Never invent facts.
 
 Be concise and action-oriented. Work iteratively: inspect only what is needed, execute the
 minimum safe command needed, then report the result. Do not suggest extra commands after a
-task is complete unless they are necessary. Every shell command must be shown to and approved
-by the human in the terminal before execution. Never bypass approval. Prefer safe, reversible
-commands. For destructive commands, clearly explain what will happen before asking for approval.
+task is complete unless necessary. Every shell command must be shown to and approved by the
+human in the terminal before execution. Never bypass approval. Prefer safe, reversible commands.
 """.strip()
 
 
@@ -38,9 +37,7 @@ TOOLS = [
             "description": "Execute a shell command on the user's machine after terminal approval.",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "command": {"type": "string", "description": "The shell command to execute."}
-                },
+                "properties": {"command": {"type": "string"}},
                 "required": ["command"],
                 "additionalProperties": False,
             },
@@ -71,10 +68,15 @@ def _client() -> AsyncOpenAI:
     return AsyncOpenAI(api_key=api_key, base_url=settings.base_url)
 
 
-def _memory_context(memory: MemoryStore) -> list[dict[str, str]]:
-    context = memory.prompt_context(settings.memory_messages)
-    # Do not duplicate the current request; caller appends it afterward.
-    return context
+def _learn_explicit_facts(memory: MemoryStore, text: str) -> None:
+    patterns = {
+        "distribution": r"\b(?:i am|i'm|im) using\s+(Garuda Linux)\b",
+        "shell": r"\b(?:i use|i'm using)\s+(fish|zsh|bash)\s*(?:shell)?\b",
+    }
+    for key, pattern in patterns.items():
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            memory.set_fact(key, match.group(1).strip())
 
 
 async def run_agent(message: str, state: SessionState, request_approval) -> str:
@@ -82,14 +84,14 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
     runner = CommandRunner(state, settings.workspace, request_approval)
     memory = MemoryStore(settings.memory_path)
 
+    _learn_explicit_facts(memory, message)
+
     external = load_tools_from_github(settings.github_tools_url)
     if external:
         state.emit("external_tools_loaded", manifest=external)
 
-    messages: list[dict[str, Any]] = [
-        {"role": "system", "content": SYSTEM_INSTRUCTIONS},
-        *_memory_context(memory),
-    ]
+    messages: list[dict[str, Any]] = [{"role": "system", "content": SYSTEM_INSTRUCTIONS}]
+    messages.extend(memory.prompt_context(settings.memory_messages))
     messages.append({"role": "user", "content": message})
 
     memory.add_message("user", message)
@@ -105,10 +107,8 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
             temperature=0.2,
         )
 
-        choice = response.choices[0]
-        assistant = choice.message
+        assistant = response.choices[0].message
         tool_calls = assistant.tool_calls or []
-
         messages.append(
             {
                 "role": "assistant",
@@ -149,13 +149,6 @@ async def run_agent(message: str, state: SessionState, request_approval) -> str:
                 else:
                     result = f"Unknown tool: {name}"
 
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": call.id,
-                    "content": result,
-                }
-            )
-            memory.add_message("tool", result)
+            messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
 
     raise RuntimeError("Agent reached the maximum tool-call iterations without a final response.")
