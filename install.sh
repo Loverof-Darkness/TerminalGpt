@@ -6,6 +6,8 @@ INSTALL_ROOT="${TERMINALGPT_HOME:-$HOME/.local/share/terminalgpt}"
 BIN_DIR="${TERMINALGPT_BIN_DIR:-$HOME/.local/bin}"
 VENV="$INSTALL_ROOT/venv"
 TMP_DIR="$(mktemp -d)"
+AUTH_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/terminalgpt"
+AUTH_FILE="$AUTH_DIR/auth.env"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 show_loading() {
@@ -64,7 +66,7 @@ show_welcome() {
   printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset"
   printf '%s%s %s %s%s\n' "$red" "$G5" "$P5" "$GT5" "$reset"
 
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
   printf '%s%s %s %s%s\n' "$red" "$G6" "$P6" "$GT6" "$reset"
 
   printf '%s  ░▒▓%sTERMINAL%s▓▒░     ░▒▓%sGPT%s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$cyan"
@@ -131,8 +133,70 @@ rm -rf "$VENV"
 "$VENV/bin/python" -m pip install --upgrade pip >/dev/null
 "$VENV/bin/python" -m pip install "$TMP_DIR/src" >/dev/null
 
+mkdir -p "$AUTH_DIR"
+chmod 700 "$AUTH_DIR"
+
+if [[ -s "$AUTH_FILE" ]]; then
+  printf '\033[1;36m✓ OpenAI API authorization already configured.\033[0m\n'
+elif [[ -n "${OPENAI_API_KEY:-}" ]]; then
+  printf '\033[1;36mValidating existing OPENAI_API_KEY...\033[0m\n'
+  http_code=$(curl -sS -o /dev/null -w '%{http_code}' \
+    -H "Authorization: Bearer ${OPENAI_API_KEY}" \
+    "https://api.openai.com/v1/models" || true)
+  if [[ "$http_code" != 2* ]]; then
+    printf '\033[1;31mExisting OPENAI_API_KEY was rejected (HTTP %s).\033[0m\n' "$http_code"
+    exit 1
+  fi
+  printf 'OPENAI_API_KEY=%q\n' "$OPENAI_API_KEY" > "$AUTH_FILE"
+  chmod 600 "$AUTH_FILE"
+  printf '\033[1;32m✓ OpenAI API authorized and saved securely.\033[0m\n'
+else
+  printf '\n\033[1;36mOpenAI API authorization\033[0m\n'
+  printf 'TerminalGPT needs an OpenAI API key to use the AI agent.\n'
+  printf 'Your key will be validated against the OpenAI API and stored locally with restricted permissions.\n\n'
+
+  local_api_key=''
+  while [[ -z "$local_api_key" ]]; do
+    printf '\033[1;36mEnter OpenAI API key: \033[0m'
+    IFS= read -r -s local_api_key < /dev/tty || exit 1
+    printf '\n'
+    [[ -n "$local_api_key" ]] || printf '\033[1;31mAPI key cannot be empty.\033[0m\n'
+  done
+
+  printf '\033[1;36mAuthorizing...\033[0m\n'
+  http_code=$(curl -sS -o /dev/null -w '%{http_code}' \
+    -H "Authorization: Bearer ${local_api_key}" \
+    "https://api.openai.com/v1/models" || true)
+
+  case "$http_code" in
+    2*)
+      printf 'OPENAI_API_KEY=%q\n' "$local_api_key" > "$AUTH_FILE"
+      chmod 600 "$AUTH_FILE"
+      unset local_api_key
+      printf '\033[1;32m✓ OpenAI API authorized successfully.\033[0m\n'
+      printf '\033[1;36m✓ Credential saved to %s\033[0m\n' "$AUTH_FILE"
+      ;;
+    401)
+      unset local_api_key
+      printf '\033[1;31m✗ Invalid OpenAI API key. Installation stopped.\033[0m\n'
+      exit 1
+      ;;
+    *)
+      unset local_api_key
+      printf '\033[1;31m✗ OpenAI API authorization failed (HTTP %s).\033[0m\n' "$http_code"
+      exit 1
+      ;;
+  esac
+fi
+
 cat > "$BIN_DIR/terminalgpt" <<EOF
 #!/usr/bin/env bash
+set -euo pipefail
+AUTH_FILE="$AUTH_FILE"
+if [[ -f "\$AUTH_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "\$AUTH_FILE"
+fi
 exec "$VENV/bin/terminalgpt" "\$@"
 EOF
 chmod +x "$BIN_DIR/terminalgpt"
