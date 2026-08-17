@@ -20,10 +20,10 @@ show_loading() {
 
   printf '\n'
   for i in {1..20}; do
-    printf '\r%b  Initializing TerminalGPT %s%b' "$cyan" "${frames[$((i % ${#frames[@]}))]}" "$reset"
+    printf '\r%b  Initializing TerminalGPT [%s]%b' "$cyan" "${frames[$((i % ${#frames[@]}))]}" "$reset"
     sleep 0.07
   done
-  printf '\r%b  Initializing TerminalGPT ✓%b\n' "$red" "$reset"
+  printf '\r%b  Initializing TerminalGPT [OK]%b\n' "$red" "$reset"
   printf '%b  Preparing installer...%b\n\n' "$gray" "$reset"
 }
 
@@ -36,59 +36,46 @@ show_welcome() {
   local gray='\033[0;37m'
   local red='\033[1;31m'
 
-  # 5x7 ANSI block font. Every glyph is exactly 5 terminal cells wide.
+  # Fixed 5x7 block logo. No associative arrays/read loops are used here,
+  # which keeps the installer reliable under `set -e` and different Bash builds.
   # TERMINAL = magenta, GPT = red.
-  declare -A GLYPHS=(
-    [T]='█████|  █  |  █  |  █  |  █  |  █  |  █  '
-    [E]='█████|██   |██   |████ |██   |██   |█████'
-    [R]='████ |██ ██|██ ██|████ |██  █|██ ██|██  ██'
-    [M]='██ ██|█████|█████|██ ██|██ ██|██ ██|██ ██'
-    [I]='█████|  █  |  █  |  █  |  █  |  █  |█████'
-    [N]='██ ██|█████|█████|█████|██ ██|██ ██|██ ██'
-    [A]=' ███ |██ ██|██ ██|█████|██ ██|██ ██|██ ██'
-    [L]='██   |██   |██   |██   |██   |██   |█████'
-    [G]=' ████|██   |██   |██ ██|██ ██|██  █| ████'
-    [P]='████ |██ ██|██ ██|████ |██   |██   |██   '
-  )
-
-  # ASCII-only border avoids locale/encoding replacement glyphs in terminals.
-  local width=73
+  local width=70
   local horizontal
   horizontal=$(printf '%*s' "$width" '' | tr ' ' '-')
 
-  logo_row() {
-    local row="$1" word='TERMINALGPT' i letter pattern
-    local -a parts
+  local t1='█████ █████ ████  ██ ██ █████ ██ ██  ███  ██   '
+  local t2='  █   ██    ██ ██ █████   █   ██ ██ ██ ██ ██   '
+  local t3='  █   ██    ██ ██ ██ ██   █   █████ ██ ██ ██   '
+  local t4='  █   ████  ████  ██ ██   █   █████ █████ ██   '
+  local t5='  █   ██    ██  █ ██ ██   █   ██ ██ ██ ██ ██   '
+  local t6='  █   ██    ██ ██ ██ ██   █   ██ ██ ██ ██ ██   '
+  local t7='  █   █████ ██   █ ██ ██ █████ ██ ██ ██ ██ █████'
 
-    for ((i=0; i<${#word}; i++)); do
-      letter="${word:i:1}"
-
-      if (( i < 8 )); then
-        printf '%b' "$terminal_color"
-      else
-        printf '%b' "$gpt_color"
-      fi
-
-      pattern="${GLYPHS[$letter]}"
-      IFS='|' read -r -a parts <<< "$pattern"
-      printf '%s' "${parts[$((row-1))]}"
-      printf '%b' "$reset"
-
-      # IMPORTANT: do not write `((condition)) && ...` with `set -e`.
-      # A false arithmetic test returns status 1 and would abort the script.
-      if (( i < ${#word}-1 )); then
-        printf ' '
-      fi
-    done
-  }
+  local g1=' ████ ████  █████'
+  local g2='██    ██ ██   █  '
+  local g3='██    ██ ██   █  '
+  local g4='██ ██ ████    █  '
+  local g5='██ ██ ██      █  '
+  local g6='██  █ ██      █  '
+  local g7=' ████ ██      █  '
 
   printf '%b\n' "${border}+${horizontal}+${reset}"
-  for row in 1 2 3 4 5 6 7; do
-    printf '%b' "${border}|${reset}  "
-    logo_row "$row"
-    printf '  '
-    printf '%b\n' "${border}|${reset}"
-  done
+
+  printf '%b' "${border}|${reset}  ${terminal_color}${t1}${reset}  ${gpt_color}${g1}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+  printf '%b' "${border}|${reset}  ${terminal_color}${t2}${reset}  ${gpt_color}${g2}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+  printf '%b' "${border}|${reset}  ${terminal_color}${t3}${reset}  ${gpt_color}${g3}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+  printf '%b' "${border}|${reset}  ${terminal_color}${t4}${reset}  ${gpt_color}${g4}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+  printf '%b' "${border}|${reset}  ${terminal_color}${t5}${reset}  ${gpt_color}${g5}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+  printf '%b' "${border}|${reset}  ${terminal_color}${t6}${reset}  ${gpt_color}${g6}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+  printf '%b' "${border}|${reset}  ${terminal_color}${t7}${reset}  ${gpt_color}${g7}${reset}"
+  printf '%b\n' "  ${border}|${reset}"
+
   printf '%b\n' "${border}+${horizontal}+${reset}"
 
   local tagline='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
