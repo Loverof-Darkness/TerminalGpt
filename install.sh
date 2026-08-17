@@ -11,77 +11,71 @@ cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
 
 show_loading() {
-  local reset='\033[0m'
-  local cyan='\033[1;36m'
-  local red='\033[1;31m'
-  local gray='\033[0;37m'
+  local cyan='\033[1;36m' reset='\033[0m'
   local frames=('|' '/' '-' '\\')
   local i
-
   printf '\n'
-  for i in {1..20}; do
-    printf '\r%b  Initializing TerminalGPT [%s]%b' "$cyan" "${frames[$((i % ${#frames[@]}))]}" "$reset"
-    sleep 0.07
+  for i in {1..16}; do
+    printf '\r%b  Initializing TerminalGPT %s%b' "$cyan" "${frames[$((i % 4))]}" "$reset"
+    sleep 0.06
   done
-  printf '\r%b  Initializing TerminalGPT [OK]%b\n' "$red" "$reset"
-  printf '%b  Preparing installer...%b\n\n' "$gray" "$reset"
+  printf '\r%b  Initializing TerminalGPT [OK]%b\n' "$cyan" "$reset"
+  printf '  Preparing installer...\n\n'
 }
 
 show_welcome() {
-  local reset='\033[0m'
   local border='\033[1;36m'
   local terminal_color='\033[1;35m'
   local gpt_color='\033[1;31m'
   local white='\033[1;97m'
   local gray='\033[0;37m'
-  local red='\033[1;31m'
-
-  # Fixed 5x7 block logo. No associative arrays/read loops are used here,
-  # which keeps the installer reliable under `set -e` and different Bash builds.
-  # TERMINAL = magenta, GPT = red.
-  local width=70
+  local reset='\033[0m'
+  local width=73
   local horizontal
   horizontal=$(printf '%*s' "$width" '' | tr ' ' '-')
 
-  local t1='█████ █████ ████  ██ ██ █████ ██ ██  ███  ██   '
-  local t2='  █   ██    ██ ██ █████   █   ██ ██ ██ ██ ██   '
-  local t3='  █   ██    ██ ██ ██ ██   █   █████ ██ ██ ██   '
-  local t4='  █   ████  ████  ██ ██   █   █████ █████ ██   '
-  local t5='  █   ██    ██  █ ██ ██   █   ██ ██ ██ ██ ██   '
-  local t6='  █   ██    ██ ██ ██ ██   █   ██ ██ ██ ██ ██   '
-  local t7='  █   █████ ██   █ ██ ██ █████ ██ ██ ██ ██ █████'
-
-  local g1=' ████ ████  █████'
-  local g2='██    ██ ██   █  '
-  local g3='██    ██ ██   █  '
-  local g4='██ ██ ████    █  '
-  local g5='██ ██ ██      █  '
-  local g6='██  █ ██      █  '
-  local g7=' ████ ██      █  '
-
   printf '%b\n' "${border}+${horizontal}+${reset}"
 
-  printf '%b' "${border}|${reset}  ${terminal_color}${t1}${reset}  ${gpt_color}${g1}${reset}"
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}█████ █████ ████  ██ ██ █████ ██ ██  ███  ██    ${reset}"
+  printf '%b' "${gpt_color}  ████ ████  █████${reset}"
   printf '%b\n' "  ${border}|${reset}"
-  printf '%b' "${border}|${reset}  ${terminal_color}${t2}${reset}  ${gpt_color}${g2}${reset}"
+
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}  █   ██    ██ ██ █████   █   █████ ██ ██ ██    ${reset}"
+  printf '%b' "${gpt_color} ██    ██ ██   █${reset}"
   printf '%b\n' "  ${border}|${reset}"
-  printf '%b' "${border}|${reset}  ${terminal_color}${t3}${reset}  ${gpt_color}${g3}${reset}"
+
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}  █   ██    ██ ██ ██ ██   █   █████ ██ ██ ██    ${reset}"
+  printf '%b' "${gpt_color} ██    ██ ██   █${reset}"
   printf '%b\n' "  ${border}|${reset}"
-  printf '%b' "${border}|${reset}  ${terminal_color}${t4}${reset}  ${gpt_color}${g4}${reset}"
+
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}  █   ████  ████  ██ ██   █   ██ ██ █████ ██    ${reset}"
+  printf '%b' "${gpt_color} ██ ██ ████    █${reset}"
   printf '%b\n' "  ${border}|${reset}"
-  printf '%b' "${border}|${reset}  ${terminal_color}${t5}${reset}  ${gpt_color}${g5}${reset}"
+
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}  █   ██    ██ ██ ██ ██   █   ██ ██ ██ ██ ██    ${reset}"
+  printf '%b' "${gpt_color} ██ ██ ██      █${reset}"
   printf '%b\n' "  ${border}|${reset}"
-  printf '%b' "${border}|${reset}  ${terminal_color}${t6}${reset}  ${gpt_color}${g6}${reset}"
+
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}  █   ██    ██ ██ ██ ██   █   ██ ██ ██ ██ ██    ${reset}"
+  printf '%b' "${gpt_color} ██ ██ ██      █${reset}"
   printf '%b\n' "  ${border}|${reset}"
-  printf '%b' "${border}|${reset}  ${terminal_color}${t7}${reset}  ${gpt_color}${g7}${reset}"
+
+  printf '%b' "${border}|  ${reset}"
+  printf '%b' "${terminal_color}  █   █████ ██  ██ ██ ██ █████ ██ ██ ██ ██ █████ ${reset}"
+  printf '%b' "${gpt_color}  ████ ██      █${reset}"
   printf '%b\n' "  ${border}|${reset}"
 
   printf '%b\n' "${border}+${horizontal}+${reset}"
-
+  printf '%b' "${border}|${reset}"
   local tagline='TERMINAL-FIRST AI AGENT FOR YOUR SYSTEM'
   local left=$(( (width - ${#tagline}) / 2 ))
   local right=$(( width - left - ${#tagline} ))
-  printf '%b' "${border}|${reset}"
   printf '%*s%b%*s' "$left" '' "${white}${tagline}${reset}" "$right" ''
   printf '%b\n' "${border}|${reset}"
   printf '%b\n' "${border}+${horizontal}+${reset}"
@@ -93,35 +87,27 @@ show_welcome() {
   printf '\n'
   printf '%b\n' "${gray}This installer will download the latest TerminalGPT source from GitHub,"
   printf '%b\n' "create an isolated Python environment, install dependencies, and install"
-  printf '%b\n' "the ${white}terminalgpt${reset}${gray} command under ${white}$BIN_DIR${reset}${gray}."
+  printf '%b\n' "the terminalgpt command under $BIN_DIR."
   printf '\n'
 
   if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
     return 0
   fi
 
-  local answer
   if [[ ! -r /dev/tty ]]; then
-    printf '%b\n' "${red}Unable to read confirmation from the terminal.${reset}"
+    printf '%b\n' "Unable to read confirmation from the terminal."
     exit 1
   fi
 
+  local answer
   while true; do
     printf '%b' "${border}Continue with installation? [Y/n]: ${reset}"
     IFS= read -r answer < /dev/tty || exit 1
     answer="${answer:-Y}"
     case "$answer" in
-      Y|y|yes|YES|Yes)
-        printf '\n'
-        return 0
-        ;;
-      N|n|no|NO|No)
-        printf '%b\n' "${gray}Installation cancelled.${reset}"
-        exit 0
-        ;;
-      *)
-        printf '%b\n' "${red}Please answer Y or N.${reset}"
-        ;;
+      Y|y|yes|YES|Yes) printf '\n'; return 0 ;;
+      N|n|no|NO|No) printf 'Installation cancelled.\n'; exit 0 ;;
+      *) printf 'Please answer Y or N.\n' ;;
     esac
   done
 }
@@ -134,10 +120,9 @@ command -v python3 >/dev/null 2>&1 || {
   exit 1
 }
 
-PYTHON="python3"
-PY_VERSION="$($PYTHON -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-if ! "$PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)'; then
-  echo "TerminalGPT requires Python 3.11+; found Python $PY_VERSION." >&2
+PYTHON=python3
+if ! "$PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)'; then
+  echo "TerminalGPT requires Python 3.11+." >&2
   exit 1
 fi
 
@@ -169,21 +154,23 @@ case "${SHELL:-}" in
     mkdir -p "$(dirname "$FISH_CONFIG")"
     touch "$FISH_CONFIG"
     grep -Fqx "fish_add_path $BIN_DIR" "$FISH_CONFIG" 2>/dev/null || echo "fish_add_path $BIN_DIR" >> "$FISH_CONFIG"
-    if command -v fish >/dev/null 2>&1; then fish -c 'fish_add_path "$HOME/.local/bin"' 2>/dev/null || true; fi
+    fish -c 'fish_add_path "$HOME/.local/bin"' 2>/dev/null || true
     ;;
   */zsh)
-    ZSH_CONFIG="$HOME/.zshrc"; touch "$ZSH_CONFIG"
+    ZSH_CONFIG="$HOME/.zshrc"
+    touch "$ZSH_CONFIG"
     grep -Fqx "export PATH=\"$BIN_DIR:\$PATH\"" "$ZSH_CONFIG" 2>/dev/null || echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$ZSH_CONFIG"
     ;;
   */bash)
-    BASH_CONFIG="$HOME/.bashrc"; touch "$BASH_CONFIG"
+    BASH_CONFIG="$HOME/.bashrc"
+    touch "$BASH_CONFIG"
     grep -Fqx "export PATH=\"$BIN_DIR:\$PATH\"" "$BASH_CONFIG" 2>/dev/null || echo "export PATH=\"$BIN_DIR:\$PATH\"" >> "$BASH_CONFIG"
     ;;
 esac
 
 echo "TerminalGPT installed to $BIN_DIR/terminalgpt"
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-  echo "PATH configured for future shells. For the current shell, run: fish_add_path $BIN_DIR"
+  echo "For the current shell: fish_add_path $BIN_DIR"
 fi
 echo "Run: terminalgpt chat"
 
