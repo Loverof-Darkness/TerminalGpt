@@ -23,7 +23,7 @@ mkdir -p "$INSTALL_ROOT" "$BIN_DIR" "$AUTH_DIR"
 chmod 700 "$AUTH_DIR"
 
 printf '\033[1;36mChoose an online AI provider:\033[0m\n'
-printf '  [1] NVIDIA NIM  — hosted cloud model / free endpoint\n'
+printf '  [1] NVIDIA NIM  — hosted cloud model / free endpoints\n'
 printf '  [2] OpenAI API  — hosted cloud model\n\n'
 printf 'Provider [1]: '
 IFS= read -r provider_choice < /dev/tty
@@ -54,17 +54,33 @@ esac
 
 choose_model() {
   [[ "$PROVIDER" == "nvidia" ]] || return 0
-  printf '\n\033[1;36mChoose NVIDIA online model:\033[0m\n'
-  printf '  [1] gpt-oss-20b                 — fast reasoning / everyday agent\n'
-  printf '  [2] gpt-oss-120b                — stronger reasoning / larger model\n'
-  printf '  [3] deepseek-v4-flash           — fast coding + agentic tasks\n'
-  printf '  [4] deepseek-v4-pro             — advanced coding + reasoning\n'
-  printf '  [5] nemotron-3-nano-30b-a3b     — compact coding/reasoning/tool use\n'
-  printf '  [6] nemotron-3-super-120b-a12b  — strong agentic reasoning/tool use\n'
-  printf '  [7] nemotron-3-ultra-550b-a55b  — frontier agentic reasoning/tool use\n'
-  printf '  [8] minimax-m3                  — reasoning + coding + tool calling\n'
-  printf '  [9] laguna-xs-2.1               — terminal-focused agentic coding\n'
-  printf ' [10] glm-5.2                    — agentic coding + reasoning\n\n'
+  printf '\n\033[1;36mChoose NVIDIA free text/chat/agent model:\033[0m\n'
+  printf '\033[2mNote: NVIDIA also has free specialized endpoints (embeddings, OCR, TTS, translation, safety, image/video).\033[0m\n'
+  printf '  [ 1] openai/gpt-oss-20b                         — fast general reasoning\n'
+  printf '  [ 2] openai/gpt-oss-120b                       — stronger reasoning / agents\n'
+  printf '  [ 3] deepseek-ai/deepseek-v4-flash            — fast coding / agents\n'
+  printf '  [ 4] deepseek-ai/deepseek-v4-pro              — advanced coding / reasoning\n'
+  printf '  [ 5] nvidia/nemotron-3-nano-30b-a3b           — compact coding / reasoning / tools\n'
+  printf '  [ 6] nvidia/nemotron-3-super-120b-a12b       — long-context agentic reasoning\n'
+  printf '  [ 7] nvidia/nemotron-3-ultra-550b-a55b       — frontier agentic reasoning\n'
+  printf '  [ 8] nvidia/nemotron-nano-9b-v2               — efficient reasoning / agents\n'
+  printf '  [ 9] nvidia/llama-3.3-nemotron-super-49b-v1.5 — reasoning / tools / chat\n'
+  printf '  [10] nvidia/llama-3.3-nemotron-super-49b-v1  — reasoning / tools / chat\n'
+  printf '  [11] nvidia/llama-3.1-nemotron-nano-8b-v1   — small reasoning / agents\n'
+  printf '  [12] nvidia/nemotron-mini-4b-instruct         — small chat / RAG / functions\n'
+  printf '  [13] nvidia/nemotron-3-nano-omni-30b-a3b-reasoning — omni-modal reasoning\n'
+  printf '  [14] google/gemma-4-31b-it                    — coding / reasoning / agentic\n'
+  printf '  [15] mistralai/mistral-medium-3.5-128b       — coding / reasoning / agentic\n'
+  printf '  [16] mistralai/mistral-small-4-119b-2603      — reasoning / coding / multimodal\n'
+  printf '  [17] mistral-nemotron                           — coding / functions / instruction following\n'
+  printf '  [18] minimaxai/minimax-m3                    — reasoning / coding / tool calling\n'
+  printf '  [19] moonshotai/kimi-k2.6                    — long-horizon coding / agentic tools\n'
+  printf '  [20] z-ai/glm-5.2                             — agentic coding / reasoning / tools\n'
+  printf '  [21] poolside/laguna-xs-2.1                   — terminal-focused agentic coding\n'
+  printf '  [22] stepfun-ai/step-3.7-flash                — fast multimodal reasoning / agents\n'
+  printf '  [23] qwen/qwen3.5-397b-a17b                   — multimodal chat / RAG / agents\n'
+  printf '  [24] google/diffusiongemma-26b-a4b-it         — efficient reasoning / text\n'
+  printf '  [25] thinkingmachines/inkling                  — multimodal reasoning / tool use\n\n'
   printf 'Model [1]: '
   IFS= read -r model_choice < /dev/tty
   model_choice="${model_choice:-1}"
@@ -76,9 +92,24 @@ choose_model() {
     5) MODEL="nvidia/nemotron-3-nano-30b-a3b" ;;
     6) MODEL="nvidia/nemotron-3-super-120b-a12b" ;;
     7) MODEL="nvidia/nemotron-3-ultra-550b-a55b" ;;
-    8) MODEL="minimaxai/minimax-m3" ;;
-    9) MODEL="poolside/laguna-xs-2.1" ;;
-    10) MODEL="z-ai/glm-5.2" ;;
+    8) MODEL="nvidia/nemotron-nano-9b-v2" ;;
+    9) MODEL="nvidia/llama-3.3-nemotron-super-49b-v1.5" ;;
+    10) MODEL="nvidia/llama-3.3-nemotron-super-49b-v1" ;;
+    11) MODEL="nvidia/llama-3.1-nemotron-nano-8b-v1" ;;
+    12) MODEL="nvidia/nemotron-mini-4b-instruct" ;;
+    13) MODEL="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
+    14) MODEL="google/gemma-4-31b-it" ;;
+    15) MODEL="mistralai/mistral-medium-3.5-128b" ;;
+    16) MODEL="mistralai/mistral-small-4-119b-2603" ;;
+    17) MODEL="mistralai/mistral-nemotron" ;;
+    18) MODEL="minimaxai/minimax-m3" ;;
+    19) MODEL="moonshotai/kimi-k2.6" ;;
+    20) MODEL="z-ai/glm-5.2" ;;
+    21) MODEL="poolside/laguna-xs-2.1" ;;
+    22) MODEL="stepfun-ai/step-3.7-flash" ;;
+    23) MODEL="qwen/qwen3.5-397b-a17b" ;;
+    24) MODEL="google/diffusiongemma-26b-a4b-it" ;;
+    25) MODEL="thinkingmachines/inkling" ;;
     *) echo "Invalid model choice." >&2; exit 1 ;;
   esac
 }
