@@ -1,56 +1,143 @@
 from __future__ import annotations
 
-from agents import Agent, Runner, set_default_openai_api, set_default_openai_client, set_tracing_disabled
+import json
+from typing import Any
+
 from openai import AsyncOpenAI
 
 from .config import settings
 from .state import SessionState
-from .tools import CommandRunner, build_tools, load_tools_from_github
+from .tools import CommandRunner, load_tools_from_github
 
 
 SYSTEM_INSTRUCTIONS = """
-You are TerminalGPT, a terminal-first computer agent.
+You are TerminalGPT, an online terminal-first computer agent.
 
-You are an online AI agent. Never assume a local model is being used.
+The model runs in the cloud. The user's machine is used only for local inspection and
+for commands explicitly approved by the user in the terminal.
+
 Work iteratively. Inspect the environment before making changes. Explain the plan briefly.
-Use execute_command when local inspection or a change is required. Every command is shown to
-and approved by the human in the terminal before execution. Never bypass command approval.
-Prefer safe, reversible commands. For destructive commands, clearly explain what will happen
-and wait for the normal terminal approval flow.
+Use execute_command when local inspection or a change is required. Every command is shown
+and must be approved by the human in the terminal before execution. Never bypass approval.
+Prefer safe, reversible commands. For destructive commands, clearly explain what will happen.
 """.strip()
 
 
-def _configure_provider() -> None:
-    if not settings.api_key:
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "execute_command",
+            "description": "Execute a shell command on the user's machine after terminal approval.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "command": {"type": "string", "description": "The shell command to execute."}
+                },
+                "required": ["command"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "read_terminal_output",
+            "description": "Read the most recent command output from the user's machine.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": False,
+            },
+        },
+    },
+]
+
+
+def _client() -> AsyncOpenAI:
+    api_key = settings.api_key
+    if not api_key:
         raise RuntimeError(
             f"No API key configured for provider '{settings.provider}'. "
             f"Set {settings.api_key_env} before starting TerminalGPT."
         )
-
-    client = AsyncOpenAI(api_key=settings.api_key, base_url=settings.base_url)
-    set_default_openai_client(client, use_for_tracing=False)
-    set_default_openai_api("chat_completions")
-    set_tracing_disabled(True)
+    return AsyncOpenAI(api_key=api_key, base_url=settings.base_url)
 
 
-def build_agent(state: SessionState, request_approval):
-    _configure_provider()
+async def run_agent(message: str, state: SessionState, request_approval) -> str:
+    client = _client()
     runner = CommandRunner(state, settings.workspace, request_approval)
-    tools = build_tools(runner)
+
     external = load_tools_from_github(settings.github_tools_url)
     if external:
         state.emit("external_tools_loaded", manifest=external)
-    return Agent(
-        name="TerminalGPT",
-        instructions=SYSTEM_INSTRUCTIONS,
-        model=settings.model,
-        tools=tools,
-    )
 
+    messages: list[dict[str, Any]] = [
+        {"role": "system", "content": SYSTEM_INSTRUCTIONS},
+        {"role": "user", "content": message},
+    ]
 
-async def run_agent(message: str, state: SessionState, request_approval):
-    agent = build_agent(state, request_approval)
     state.emit("agent_started", message=message, provider=settings.provider, model=settings.model)
-    result = await Runner.run(agent, message)
-    state.emit("agent_finished", output=result.final_output)
-    return result.final_output
+
+    # Direct Chat Completions is used deliberately instead of the Agents SDK runner:
+    # NVIDIA's hosted OpenAI-compatible endpoint supports /chat/completions directly,
+    # while the SDK may select a different transport/path for custom providers.
+    for _ in range(8):
+        response = await client.chat.completions.create(
+            model=settings.model,
+            messages=messages,
+            tools=TOOLS,
+            tool_choice="auto",
+            max_tokens=2048,
+        )
+
+        choice = response.choices[0]
+        assistant = choice.message
+        tool_calls = assistant.tool_calls or []
+
+        messages.append(
+            {
+                "role": "assistant",
+                "content": assistant.content or "",
+                "tool_calls": [
+                    {
+                        "id": call.id,
+                        "type": "function",
+                        "function": {
+                            "name": call.function.name,
+                            "arguments": call.function.arguments,
+                        },
+                    }
+                    for call in tool_calls
+                ],
+            }
+        )
+
+        if not tool_calls:
+            output = assistant.content or ""
+            state.emit("agent_finished", output=output)
+            return output
+
+        for call in tool_calls:
+            name = call.function.name
+            try:
+                arguments = json.loads(call.function.arguments or "{}")
+            except json.JSONDecodeError as exc:
+                result = f"Invalid tool arguments: {exc}"
+            else:
+                if name == "execute_command":
+                    result = await runner.run(str(arguments.get("command", "")))
+                elif name == "read_terminal_output":
+                    result = state.last_output or "No terminal output yet."
+                else:
+                    result = f"Unknown tool: {name}"
+
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call.id,
+                    "content": result,
+                }
+            )
+
+    raise RuntimeError("Agent reached the maximum tool-call iterations without a final response.")
