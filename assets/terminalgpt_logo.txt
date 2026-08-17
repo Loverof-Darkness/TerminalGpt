@@ -1,3 +1,0 @@
-TerminalGPT installer banner
-
-The installer renders the main ANSI logo directly so the box width stays fixed and the two brand words can use separate colors.
