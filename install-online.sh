@@ -11,7 +11,6 @@ AUTH_FILE="$AUTH_DIR/auth.env"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 curl -fsSL "https://raw.githubusercontent.com/Loverof-Darkness/TerminalGpt/main/installer_banner.sh" -o "$TMP_DIR/banner.sh"
-# shellcheck disable=SC1091
 source "$TMP_DIR/banner.sh"
 show_loading
 show_welcome || exit 0
@@ -53,6 +52,39 @@ case "$provider_choice" in
     ;;
 esac
 
+choose_model() {
+  [[ "$PROVIDER" == "nvidia" ]] || return 0
+  printf '\n\033[1;36mChoose NVIDIA online model:\033[0m\n'
+  printf '  [1] gpt-oss-20b                 — fast reasoning / everyday agent\n'
+  printf '  [2] gpt-oss-120b                — stronger reasoning / larger model\n'
+  printf '  [3] deepseek-v4-flash           — fast coding + agentic tasks\n'
+  printf '  [4] deepseek-v4-pro             — advanced coding + reasoning\n'
+  printf '  [5] nemotron-3-nano-30b-a3b     — compact coding/reasoning/tool use\n'
+  printf '  [6] nemotron-3-super-120b-a12b  — strong agentic reasoning/tool use\n'
+  printf '  [7] nemotron-3-ultra-550b-a55b  — frontier agentic reasoning/tool use\n'
+  printf '  [8] minimax-m3                  — reasoning + coding + tool calling\n'
+  printf '  [9] laguna-xs-2.1               — terminal-focused agentic coding\n'
+  printf ' [10] glm-5.2                    — agentic coding + reasoning\n\n'
+  printf 'Model [1]: '
+  IFS= read -r model_choice < /dev/tty
+  model_choice="${model_choice:-1}"
+  case "$model_choice" in
+    1) MODEL="openai/gpt-oss-20b" ;;
+    2) MODEL="openai/gpt-oss-120b" ;;
+    3) MODEL="deepseek-ai/deepseek-v4-flash" ;;
+    4) MODEL="deepseek-ai/deepseek-v4-pro" ;;
+    5) MODEL="nvidia/nemotron-3-nano-30b-a3b" ;;
+    6) MODEL="nvidia/nemotron-3-super-120b-a12b" ;;
+    7) MODEL="nvidia/nemotron-3-ultra-550b-a55b" ;;
+    8) MODEL="minimaxai/minimax-m3" ;;
+    9) MODEL="poolside/laguna-xs-2.1" ;;
+    10) MODEL="z-ai/glm-5.2" ;;
+    *) echo "Invalid model choice." >&2; exit 1 ;;
+  esac
+}
+
+choose_model
+
 validate_key() {
   local key="$1" code
   code=$(curl -sS -o /dev/null -w '%{http_code}' -H "Authorization: Bearer ${key}" "$VALIDATE_URL" || true)
@@ -61,7 +93,6 @@ validate_key() {
 
 load_saved_key() {
   [[ -s "$AUTH_FILE" ]] || return 1
-  # shellcheck disable=SC1090
   source "$AUTH_FILE"
   local saved=""
   if [[ "$PROVIDER" == "nvidia" ]]; then saved="${NVIDIA_API_KEY:-}"; else saved="${OPENAI_API_KEY:-}"; fi
@@ -69,8 +100,6 @@ load_saved_key() {
   local code
   code=$(validate_key "$saved")
   if [[ "$code" == 2* ]]; then
-    # Keep the existing key, but refresh provider/model configuration so the
-    # faster default model is used on the next launch.
     {
       printf 'TERMINALGPT_PROVIDER=%q\n' "$PROVIDER"
       printf 'TERMINALGPT_MODEL=%q\n' "$MODEL"
@@ -137,9 +166,7 @@ cat > "$BIN_DIR/terminalgpt" <<EOF
 set -euo pipefail
 AUTH_FILE="$AUTH_FILE"
 if [[ -f "\$AUTH_FILE" ]]; then
-  # Export all provider configuration to the Python child process.
   set -a
-  # shellcheck disable=SC1090
   source "\$AUTH_FILE"
   set +a
 fi
