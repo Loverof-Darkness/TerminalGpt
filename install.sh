@@ -9,65 +9,68 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 show_loading() {
-  local cyan=$'\033[1;36m' reset=$'\033[0m'
   local frames=('|' '/' '-' '\\')
   local i
   printf '\n'
   for i in {1..16}; do
-    printf '\r%s  Initializing TerminalGPT %s%s' "$cyan" "${frames[$((i % 4))]}" "$reset"
+    printf '\r\033[1;36m  Initializing TerminalGPT %s\033[0m' "${frames[$((i % 4))]}"
     sleep 0.06
   done
-  printf '\r%s  Initializing TerminalGPT [OK]%s\n' "$cyan" "$reset"
+  printf '\r\033[1;36m  Initializing TerminalGPT [OK]\033[0m\n'
   printf '  Preparing installer...\n\n'
 }
 
 show_welcome() {
-  local cyan=$'\033[1;36m'
-  local magenta=$'\033[1;35m'
-  local red=$'\033[1;31m'
-  local white=$'\033[1;97m'
-  local gray=$'\033[0;37m'
-  local reset=$'\033[0m'
-
-  printf '%s+------------------------------------------------------------------------------+%s\n' "$cyan" "$reset"
-  printf '%s|%s                                                                            %s|%s\n' "$cyan" "$reset" "$cyan" "$reset"
-  printf '%s|  %s████████╗███████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
-  printf '%s|  %s╚══██╔══╝██╔════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
-  printf '%s|  %s   ██║   █████╗  ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
-  printf '%s|  %s   ██║   ██╔══╝  ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║           %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
-  printf '%s|  %s   ██║   ███████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗      %s|%s\n' "$cyan" "$magenta" "$cyan" "$reset"
-  printf '%s|  %s   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝ %sGPT %s|%s\n' "$cyan" "$magenta" "$red" "$reset" "$reset"
-  printf '%s|%s                                                                            %s|%s\n' "$cyan" "$reset" "$cyan" "$reset"
-  printf '%s|                 %sTerminal-first AI agent for your system%s                 %s|%s\n' "$cyan" "$white" "$reset" "$cyan" "$reset"
-  printf '%s|%s                                                                            %s|%s\n' "$cyan" "$reset" "$cyan" "$reset"
-  printf '%s+------------------------------------------------------------------------------+%s\n' "$cyan" "$reset"
+  # Fixed 7-row block wordmark. No dynamic ANSI variables are used in the logo;
+  # printf interprets the escape sequences directly, preventing literal \033 text.
+  printf '\033[1;36m+-------------------------------------------------------------------------+\033[0m\n'
+  printf '\033[1;36m|\033[0m                                                                         \033[1;36m|\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m##### ##### ####  #   # ##### #   #  ###  #     ##   ##### #####\033[1;31m  #### ##### ####\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m  #   #     #   # #  ##   #   ##  # #   # #     ##   #   # #    \033[1;31m #   # #   # #\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m  #   #     #   # # # #   #   ##  # #   # #     ##   #   # #    \033[1;31m #   # #   # #\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m  #   ####  ####  #   #   #   # # # ##### #     ##   #   # #### \033[1;31m #   # ####  #\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m  #   #     # #   #   #   #   #  ## #   # #     ##   #   # #    \033[1;31m #   # #  #  #\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m  #   #     #  #  #   #   #   #  ## #   # #     ##   #   # #    \033[1;31m #   # #   # #\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|  \033[1;35m  #   ##### #   # ##### ##### #   # #   # ##### ##   ##### #    \033[1;31m ####  #   # #\033[1;36m  |\033[0m\n'
+  printf '\033[1;36m|\033[0m                                                                         \033[1;36m|\033[0m\n'
+  printf '\033[1;36m|                    \033[1;97mTERMINAL-FIRST AI AGENT\033[0m                    \033[1;36m|\033[0m\n'
+  printf '\033[1;36m|                         \033[1;97mFOR YOUR SYSTEM\033[0m                         \033[1;36m|\033[0m\n'
+  printf '\033[1;36m+-------------------------------------------------------------------------+\033[0m\n'
   printf '\n'
 
-  printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
+  printf '\033[1;97mTerminalGPT\033[0m is a terminal-first AI agent that can reason about your machine,\n'
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
   printf 'human approval before performing sensitive actions.\n\n'
-  printf '%sThis installer will download the latest TerminalGPT source from GitHub,%s\n' "$gray" "$reset"
+  printf '\033[0;37mThis installer will download the latest TerminalGPT source from GitHub,\033[0m\n'
   printf 'create an isolated Python environment, install dependencies, and install\n'
-  printf 'the %sterminalgpt%s command under %s%s%s.\n\n' "$white" "$reset" "$white" "$BIN_DIR" "$reset"
+  printf 'the \033[1;97mterminalgpt\033[0m command under \033[1;97m%s\033[0m.\n\n' "$BIN_DIR"
 
   if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
     return 0
   fi
 
   if [[ ! -r /dev/tty ]]; then
-    printf '%sUnable to read confirmation from the terminal.%s\n' "$red" "$reset"
+    printf '\033[1;31mUnable to read confirmation from the terminal.\033[0m\n'
     exit 1
   fi
 
   local answer
   while true; do
-    printf '%sContinue with installation? [Y/n]: %s' "$cyan" "$reset"
+    printf '\033[1;36mContinue with installation? [Y/n]: \033[0m'
     IFS= read -r answer < /dev/tty || exit 1
     answer="${answer:-Y}"
     case "$answer" in
-      Y|y|yes|YES|Yes) printf '\n'; return 0 ;;
-      N|n|no|NO|No) printf 'Installation cancelled.\n'; exit 0 ;;
-      *) printf '%sPlease answer Y or N.%s\n' "$red" "$reset" ;;
+      Y|y|yes|YES|Yes)
+        printf '\n'
+        return 0
+        ;;
+      N|n|no|NO|No)
+        printf 'Installation cancelled.\n'
+        exit 0
+        ;;
+      *)
+        printf '\033[1;31mPlease answer Y or N.\033[0m\n'
+        ;;
     esac
   done
 }
