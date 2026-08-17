@@ -19,36 +19,76 @@ show_loading() {
       3) printf '\r\033[1;36m  Initializing TerminalGPT \\\033[0m' ;;
     esac
     sleep 0.055
-done
+  done
   printf '\r\033[1;36m  Initializing TerminalGPT [OK]\033[0m\n'
   printf '  Preparing installer...\n\n'
 }
 
 show_welcome() {
-  # Stylized ANSI artwork: bright face + darker shadow layers.
-  # TERMINAL = magenta / violet, GPT = red / deep red.
-  local pink=$'\033[38;5;213m'
-  local violet=$'\033[38;5;129m'
+  # ANSI Shadow-style wordmark, rendered directly so figlet is not required.
+  # TERMINAL = bright magenta, GPT = bright red.
+  # The glyph shapes follow the ANSI Shadow FIGfont style.
+  local magenta=$'\033[1;35m'
   local red=$'\033[1;31m'
-  local darkred=$'\033[38;5;88m'
+  local dark_magenta=$'\033[38;5;129m'
+  local dark_red=$'\033[38;5;88m'
   local cyan=$'\033[1;36m'
   local white=$'\033[1;97m'
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
 
-  # Large fixed-width wordmark with a hand-built ANSI-shadow look.
-  printf '%s  █████  █████ ██████  █████  ███  ███ █████  █     █   █████ ██████ %s %s █████ █████ █████ %s\n' "$violet" "$pink" "$darkred" "$red"
-  printf '%s ██   ██ ██    ██   ██ ██   ██ ████ ████ ██    ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
-  printf '%s ██      ██    ██   ██ ██   ██ ██ ███ ██ ██    ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
-  printf '%s  █████  █████ ██████  ███████ ██  █  ██ █████  ██     ██  ██   ██ █████ %s %s██   ██ █████ ███ %s\n' "$violet" "$pink" "$darkred" "$red"
-  printf '%s      ██ ██    ██  ██  ██   ██ ██     ██ ██     ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
-  printf '%s ██   ██ ██    ██   ██ ██   ██ ██     ██ ██     ██     ██  ██   ██ ██    %s %s██   ██ ██   ███ %s\n' "$violet" "$pink" "$darkred" "$red"
-  printf '%s  █████  █████ ██   ██ ██   ██ ██     ██ █████  █████  ██   █████ ██████ %s %s █████ █████ █████ %s\n' "$violet" "$pink" "$darkred" "$red"
+  # 6-row ANSI Shadow rendering for TERMINAL.
+  local T1='████████╗' T2='╚══██╔══╝' T3='   ██║   ' T4='   ██║   ' T5='   ██║   ' T6='   ╚═╝   '
+  local E1='███████╗' E2='██╔════╝' E3='█████╗  ' E4='██╔══╝  ' E5='███████╗' E6='╚══════╝'
+  local R1='██████╗ ' R2='██╔══██╗' R3='██████╔╝' R4='██╔══██╗' R5='██║  ██║' R6='╚═╝  ╚═╝'
+  local M1='███╗   ███╗' M2='████╗ ████║' M3='██╔████╔██║' M4='██║╚██╔╝██║' M5='██║ ╚═╝ ██║' M6='╚═╝     ╚═╝'
+  local I1='██╗' I2='██║' I3='██║' I4='██║' I5='██║' I6='╚═╝'
+  local N1='███╗   ██╗' N2='████╗  ██║' N3='██╔██╗ ██║' N4='██║╚██╗██║' N5='██║ ╚████║' N6='╚═╝  ╚═══╝'
+  local A1=' █████╗ ' A2='██╔══██╗' A3='███████║' A4='██╔══██║' A5='██║  ██║' A6='╚═╝  ╚═╝'
+  local L1='██╗     ' L2='██║     ' L3='██║     ' L4='██║     ' L5='███████╗' L6='╚══════╝'
 
-  printf '%s  ░▒▓%s TERMINAL %s▓▒░%s  %s░▒▓%s GPT %s▓▒░%s\n' "$cyan" "$pink" "$reset" "$cyan" "$cyan" "$red" "$reset" "$cyan"
-  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n' "$cyan" "$reset"
+  # 6-row ANSI Shadow rendering for GPT.
+  local G1=' ██████╗ ' G2='██╔════╝ ' G3='██║  ███╗' G4='██║   ██║' G5='╚██████╔╝' G6=' ╚═════╝ '
+  local P1='██████╗ ' P2='██╔══██╗' P3='██████╔╝' P4='██╔═══╝ ' P5='██║     ' P6='╚═╝     '
+  local GT1='████████╗' GT2='╚══██╔══╝' GT3='   ██║   ' GT4='   ██║   ' GT5='   ██║   ' GT6='   ╚═╝   '
+
+  printf '%s' "$dark_magenta"
+  printf '%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s%s%s\n' "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" '  ' "$G1" "$P1" "$GT1" "$reset" "$reset" "$reset" "$reset" "$reset"
+  printf '%s' "$magenta"
+  printf '%s %s %s %s %s %s %s %s %s' "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" '  '
+  printf '%s' "$red"
+  printf '%s %s %s\n' "$G1" "$P1" "$GT1"
+
+  printf '%s' "$magenta"
+  printf '%s %s %s %s %s %s %s %s %s' "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" '  '
+  printf '%s' "$red"
+  printf '%s %s %s\n' "$G2" "$P2" "$GT2"
+
+  printf '%s' "$magenta"
+  printf '%s %s %s %s %s %s %s %s %s' "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" '  '
+  printf '%s' "$red"
+  printf '%s %s %s\n' "$G3" "$P3" "$GT3"
+
+  printf '%s' "$magenta"
+  printf '%s %s %s %s %s %s %s %s %s' "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" '  '
+  printf '%s' "$red"
+  printf '%s %s %s\n' "$G4" "$P4" "$GT4"
+
+  printf '%s' "$magenta"
+  printf '%s %s %s %s %s %s %s %s %s' "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" '  '
+  printf '%s' "$red"
+  printf '%s %s %s\n' "$G5" "$P5" "$GT5"
+
+  printf '%s' "$magenta"
+  printf '%s %s %s %s %s %s %s %s %s' "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" '  '
+  printf '%s' "$red"
+  printf '%s %s %s\n' "$G6" "$P6" "$GT6"
+  printf '%s' "$reset"
+
+  printf '%s  ░▒▓%s TERMINAL %s▓▒░   ░▒▓%s GPT %s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$reset"
+  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n' "$cyan" "$reset"
   printf '%s                 %sTERMINAL-FIRST AI AGENT FOR YOUR SYSTEM%s                 %s\n' "$cyan" "$white" "$reset" "$cyan"
-  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n\n' "$cyan" "$reset"
+  printf '%s━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%s\n\n' "$cyan" "$reset"
 
   printf '%sTerminalGPT%s is a terminal-first AI agent that can reason about your machine,\n' "$white" "$reset"
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
