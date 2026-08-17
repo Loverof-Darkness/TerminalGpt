@@ -27,8 +27,6 @@ show_loading() {
 }
 
 show_welcome() {
-  # Real ANSI Shadow-style wordmark, rendered directly so figlet is not required.
-  # TERMINAL = bright magenta, GPT = bright red.
   local magenta=$'\033[1;35m'
   local red=$'\033[1;31m'
   local cyan=$'\033[1;36m'
@@ -36,7 +34,7 @@ show_welcome() {
   local gray=$'\033[0;37m'
   local reset=$'\033[0m'
 
-  # ANSI Shadow glyphs for TERMINAL.
+  # ANSI Shadow-style wordmark. TERMINAL = magenta, GPT = red.
   local T1='████████╗' T2='╚══██╔══╝' T3='   ██║   ' T4='   ██║   ' T5='   ██║   ' T6='   ╚═╝   '
   local E1='███████╗' E2='██╔════╝' E3='█████╗  ' E4='██╔══╝  ' E5='███████╗' E6='╚══════╝'
   local R1='██████╗ ' R2='██╔══██╗' R3='██████╔╝' R4='██╔══██╗' R5='██║  ██║' R6='╚═╝  ╚═╝'
@@ -45,29 +43,16 @@ show_welcome() {
   local N1='███╗   ██╗' N2='████╗  ██║' N3='██╔██╗ ██║' N4='██║╚██╗██║' N5='██║ ╚████║' N6='╚═╝  ╚═══╝'
   local A1=' █████╗ ' A2='██╔══██╗' A3='███████║' A4='██╔══██║' A5='██║  ██║' A6='╚═╝  ╚═╝'
   local L1='██╗     ' L2='██║     ' L3='██║     ' L4='██║     ' L5='███████╗' L6='╚══════╝'
-
-  # ANSI Shadow glyphs for GPT.
   local G1=' ██████╗ ' G2='██╔════╝ ' G3='██║  ███╗' G4='██║   ██║' G5='╚██████╔╝' G6=' ╚═════╝ '
   local P1='██████╗ ' P2='██╔══██╗' P3='██████╔╝' P4='██╔═══╝ ' P5='██║     ' P6='╚═╝     '
   local GT1='████████╗' GT2='╚══██╔══╝' GT3='   ██║   ' GT4='   ██║   ' GT5='   ██║   ' GT6='   ╚═╝   '
 
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" "$reset"
-  printf '%s%s %s %s%s\n' "$red" "$G1" "$P1" "$GT1" "$reset"
-
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" "$reset"
-  printf '%s%s %s %s%s\n' "$red" "$G2" "$P2" "$GT2" "$reset"
-
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" "$reset"
-  printf '%s%s %s %s%s\n' "$red" "$G3" "$P3" "$GT3" "$reset"
-
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" "$reset"
-  printf '%s%s %s %s%s\n' "$red" "$G4" "$P4" "$GT4" "$reset"
-
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset"
-  printf '%s%s %s %s%s\n' "$red" "$G5" "$P5" "$GT5" "$reset"
-
-  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"
-  printf '%s%s %s %s%s\n' "$red" "$G6" "$P6" "$GT6" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T1" "$E1" "$R1" "$M1" "$I1" "$N1" "$A1" "$L1" "$reset"; printf '%s%s %s %s%s\n' "$red" "$G1" "$P1" "$GT1" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T2" "$E2" "$R2" "$M2" "$I2" "$N2" "$A2" "$L2" "$reset"; printf '%s%s %s %s%s\n' "$red" "$G2" "$P2" "$GT2" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T3" "$E3" "$R3" "$M3" "$I3" "$N3" "$A3" "$L3" "$reset"; printf '%s%s %s %s%s\n' "$red" "$G3" "$P3" "$GT3" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T4" "$E4" "$R4" "$M4" "$I4" "$N4" "$A4" "$L4" "$reset"; printf '%s%s %s %s%s\n' "$red" "$G4" "$P4" "$GT4" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T5" "$E5" "$R5" "$M5" "$I5" "$N5" "$A5" "$L5" "$reset"; printf '%s%s %s %s%s\n' "$red" "$G5" "$P5" "$GT5" "$reset"
+  printf '%s%s %s %s %s %s %s %s %s  %s' "$magenta" "$T6" "$E6" "$R6" "$M6" "$I6" "$N6" "$A6" "$L6" "$reset"; printf '%s%s %s %s%s\n' "$red" "$G6" "$P6" "$GT6" "$reset"
 
   printf '%s  ░▒▓%sTERMINAL%s▓▒░     ░▒▓%sGPT%s▓▒░%s\n' "$cyan" "$magenta" "$reset" "$red" "$reset" "$cyan"
   printf '%s────────────────────────────────────────────────────────────────────────────────────────────%s\n' "$cyan" "$reset"
@@ -81,14 +66,8 @@ show_welcome() {
   printf 'create an isolated Python environment, install dependencies, and install\n'
   printf 'the %sterminalgpt%s command under %s%s%s.\n\n' "$white" "$reset" "$white" "$BIN_DIR" "$reset"
 
-  if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
-    return 0
-  fi
-
-  if [[ ! -r /dev/tty ]]; then
-    printf '%sUnable to read confirmation from the terminal.%s\n' "$red" "$reset"
-    exit 1
-  fi
+  [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]] && return 0
+  [[ -r /dev/tty ]] || { printf '%sUnable to read confirmation from the terminal.%s\n' "$red" "$reset"; exit 1; }
 
   local answer
   while true; do
@@ -103,26 +82,103 @@ show_welcome() {
   done
 }
 
+validate_key() {
+  local key="$1"
+  local code
+  code=$(curl -sS -o /dev/null -w '%{http_code}' \
+    -H "Authorization: Bearer ${key}" \
+    "https://api.openai.com/v1/models" || true)
+  printf '%s' "$code"
+}
+
+authorize_openai() {
+  mkdir -p "$AUTH_DIR"
+  chmod 700 "$AUTH_DIR"
+
+  local key code
+
+  # Prefer an already-saved credential. If it is invalid, remove it and re-authorize.
+  if [[ -s "$AUTH_FILE" ]]; then
+    # shellcheck disable=SC1090
+    source "$AUTH_FILE"
+    if [[ -n "${OPENAI_API_KEY:-}" ]]; then
+      printf '\033[1;36mValidating saved OpenAI authorization...\033[0m\n'
+      code=$(validate_key "$OPENAI_API_KEY")
+      if [[ "$code" == 2* ]]; then
+        printf '\033[1;32m✓ Saved OpenAI API authorization is valid.\033[0m\n'
+        return 0
+      fi
+      printf '\033[1;33mSaved OpenAI API key is no longer valid (HTTP %s).\033[0m\n' "$code"
+      rm -f "$AUTH_FILE"
+      unset OPENAI_API_KEY
+    fi
+  fi
+
+  # Reuse the shell environment only when it is valid. A 401 falls through to a new key prompt.
+  if [[ -n "${OPENAI_API_KEY:-}" ]]; then
+    printf '\033[1;36mValidating existing OPENAI_API_KEY...\033[0m\n'
+    code=$(validate_key "$OPENAI_API_KEY")
+    if [[ "$code" == 2* ]]; then
+      printf 'OPENAI_API_KEY=%q\n' "$OPENAI_API_KEY" > "$AUTH_FILE"
+      chmod 600 "$AUTH_FILE"
+      printf '\033[1;32m✓ OpenAI API authorized and saved securely.\033[0m\n'
+      return 0
+    fi
+    if [[ "$code" == "401" ]]; then
+      printf '\033[1;33mExisting OPENAI_API_KEY is invalid or expired.\033[0m\n'
+    else
+      printf '\033[1;31mOpenAI API authorization check failed (HTTP %s).\033[0m\n' "$code"
+      return 1
+    fi
+    unset OPENAI_API_KEY
+  fi
+
+  while true; do
+    printf '\n\033[1;36mOpenAI API authorization\033[0m\n'
+    printf 'Enter your OpenAI API key. Input is hidden and the key is stored locally with mode 600.\n\n'
+    printf '\033[1;36mEnter OpenAI API key: \033[0m'
+    IFS= read -r -s key < /dev/tty || return 1
+    printf '\n'
+    if [[ -z "$key" ]]; then
+      printf '\033[1;31mAPI key cannot be empty.\033[0m\n'
+      continue
+    fi
+
+    printf '\033[1;36mAuthorizing...\033[0m\n'
+    code=$(validate_key "$key")
+    case "$code" in
+      2*)
+        printf 'OPENAI_API_KEY=%q\n' "$key" > "$AUTH_FILE"
+        chmod 600 "$AUTH_FILE"
+        unset key
+        printf '\033[1;32m✓ OpenAI API authorized successfully.\033[0m\n'
+        printf '\033[1;36m✓ Credential saved to %s\033[0m\n' "$AUTH_FILE"
+        return 0
+        ;;
+      401)
+        printf '\033[1;31m✗ Invalid API key. Please try again.\033[0m\n'
+        ;;
+      *)
+        printf '\033[1;31m✗ OpenAI API authorization failed (HTTP %s).\033[0m\n' "$code"
+        ;;
+    esac
+    unset key
+  done
+}
+
 show_loading
 show_welcome
 
-command -v python3 >/dev/null 2>&1 || {
-  echo "TerminalGPT requires Python 3.11+. Install python3 and run this command again." >&2
-  exit 1
-}
-
+command -v python3 >/dev/null 2>&1 || { echo "TerminalGPT requires Python 3.11+. Install python3 and run this command again." >&2; exit 1; }
+command -v curl >/dev/null 2>&1 || { echo "TerminalGPT requires curl for API authorization." >&2; exit 1; }
 PYTHON=python3
-if ! "$PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)'; then
-  echo "TerminalGPT requires Python 3.11+." >&2
-  exit 1
-fi
+"$PYTHON" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)' || { echo "TerminalGPT requires Python 3.11+." >&2; exit 1; }
 
 mkdir -p "$INSTALL_ROOT" "$BIN_DIR"
 
 if command -v git >/dev/null 2>&1; then
   git clone --depth 1 --filter=blob:none "$REPO" "$TMP_DIR/src" >/dev/null 2>&1
 else
-  command -v curl >/dev/null 2>&1 || { echo "Install git or curl first." >&2; exit 1; }
   curl -fsSL "https://github.com/Loverof-Darkness/TerminalGpt/archive/refs/heads/main.tar.gz" -o "$TMP_DIR/repo.tar.gz"
   mkdir -p "$TMP_DIR/src"
   tar -xzf "$TMP_DIR/repo.tar.gz" --strip-components=1 -C "$TMP_DIR/src"
@@ -133,102 +189,7 @@ rm -rf "$VENV"
 "$VENV/bin/python" -m pip install --upgrade pip >/dev/null
 "$VENV/bin/python" -m pip install "$TMP_DIR/src" >/dev/null
 
-mkdir -p "$AUTH_DIR"
-chmod 700 "$AUTH_DIR"
-
-save_and_finish() {
-  local key="$1"
-  printf 'OPENAI_API_KEY=%q\n' "$key" > "$AUTH_FILE"
-  chmod 600 "$AUTH_FILE"
-  unset key
-  printf '\033[1;32m✓ OpenAI API authorized successfully.\033[0m\n'
-  printf '\033[1;36m✓ Credential saved to %s\033[0m\n' "$AUTH_FILE"
-}
-
-validate_key() {
-  local key="$1"
-  curl -sS -o /dev/null -w '%{http_code}' \
-    -H "Authorization: Bearer ${key}" \
-    "https://api.openai.com/v1/models" || true
-}
-
-if [[ -s "$AUTH_FILE" ]]; then
-  # Existing locally stored authorization is preferred over any environment value.
-  # shellcheck disable=SC1090
-  source "$AUTH_FILE"
-  if [[ -n "${OPENAI_API_KEY:-}" ]]; then
-    http_code=$(validate_key "$OPENAI_API_KEY")
-    case "$http_code" in
-      2*)
-        printf '\033[1;36m✓ OpenAI API authorization already configured.\033[0m\n'
-        ;;
-      401)
-        printf '\033[1;33mStored OpenAI API key is no longer valid.\033[0m\n'
-        rm -f "$AUTH_FILE"
-        ;;
-      *)
-        printf '\033[1;31mStored OpenAI API authorization check failed (HTTP %s).\033[0m\n' "$http_code"
-        exit 1
-        ;;
-    esac
-  fi
-fi
-
-if [[ ! -s "$AUTH_FILE" ]]; then
-  candidate_key="${OPENAI_API_KEY:-}"
-
-  if [[ -n "$candidate_key" ]]; then
-    printf '\033[1;36mValidating existing OPENAI_API_KEY...\033[0m\n'
-    http_code=$(validate_key "$candidate_key")
-    case "$http_code" in
-      2*)
-        save_and_finish "$candidate_key"
-        ;;
-      401)
-        printf '\033[1;33mExisting OPENAI_API_KEY is invalid or expired (HTTP 401).\033[0m\n'
-        printf '\033[1;36mPlease enter a new OpenAI API key.\033[0m\n\n'
-        ;;
-      *)
-        printf '\033[1;31mOpenAI API authorization failed (HTTP %s).\033[0m\n' "$http_code"
-        exit 1
-        ;;
-    esac
-  fi
-
-  if [[ ! -s "$AUTH_FILE" ]]; then
-    printf '\n\033[1;36mOpenAI API authorization\033[0m\n'
-    printf 'TerminalGPT needs an OpenAI API key to use the AI agent.\n'
-    printf 'The key will be validated and stored locally with restricted permissions.\n\n'
-
-    local_api_key=''
-    while [[ -z "$local_api_key" ]]; do
-      printf '\033[1;36mEnter OpenAI API key: \033[0m'
-      IFS= read -r -s local_api_key < /dev/tty || exit 1
-      printf '\n'
-      [[ -n "$local_api_key" ]] || printf '\033[1;31mAPI key cannot be empty.\033[0m\n'
-    done
-
-    printf '\033[1;36mAuthorizing...\033[0m\n'
-    http_code=$(validate_key "$local_api_key")
-
-    case "$http_code" in
-      2*)
-        save_and_finish "$local_api_key"
-        unset local_api_key
-        ;;
-      401)
-        unset local_api_key
-        printf '\033[1;31m✗ Invalid OpenAI API key. Installation stopped.\033[0m\n'
-        exit 1
-        ;;
-      *)
-        unset local_api_key
-        printf '\033[1;31m✗ OpenAI API authorization failed (HTTP %s).\033[0m\n' "$http_code"
-        exit 1
-        ;;
-    esac
-  fi
-fi
+authorize_openai || { printf '\033[1;31m✗ OpenAI authorization could not be completed. Installation not finalized.\033[0m\n'; exit 1; }
 
 cat > "$BIN_DIR/terminalgpt" <<EOF
 #!/usr/bin/env bash
@@ -237,6 +198,10 @@ AUTH_FILE="$AUTH_FILE"
 if [[ -f "\$AUTH_FILE" ]]; then
   # shellcheck disable=SC1090
   source "\$AUTH_FILE"
+fi
+if [[ -z "\${OPENAI_API_KEY:-}" ]]; then
+  echo "TerminalGPT is not authorized. Re-run the installer to authorize OpenAI." >&2
+  exit 1
 fi
 exec "$VENV/bin/terminalgpt" "\$@"
 EOF
@@ -248,7 +213,6 @@ case "${SHELL:-}" in
     mkdir -p "$(dirname "$FISH_CONFIG")"
     touch "$FISH_CONFIG"
     grep -Fqx "fish_add_path $BIN_DIR" "$FISH_CONFIG" 2>/dev/null || echo "fish_add_path $BIN_DIR" >> "$FISH_CONFIG"
-    fish -c 'fish_add_path "$HOME/.local/bin"' 2>/dev/null || true
     ;;
   */zsh)
     ZSH_CONFIG="$HOME/.zshrc"
