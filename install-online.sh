@@ -127,8 +127,11 @@ cat > "$BIN_DIR/terminalgpt" <<EOF
 set -euo pipefail
 AUTH_FILE="$AUTH_FILE"
 if [[ -f "\$AUTH_FILE" ]]; then
+  # Export all provider configuration to the Python child process.
+  set -a
   # shellcheck disable=SC1090
   source "\$AUTH_FILE"
+  set +a
 fi
 exec "$VENV/bin/terminalgpt" "\$@"
 EOF
