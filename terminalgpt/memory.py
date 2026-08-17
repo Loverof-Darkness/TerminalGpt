@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 class MemoryStore:
-    """Small local SQLite memory store used to preserve chat context across runs."""
+    """Small local SQLite memory store used for cross-run conversation continuity."""
 
     def __init__(self, path: str):
         self.path = Path(path).expanduser()
@@ -31,15 +31,15 @@ class MemoryStore:
             )
 
     def add_message(self, role: str, content: str) -> None:
-        if not content.strip():
+        # Persist only user/assistant turns. Tool messages need tool_call_id metadata
+        # to be safely replayed to an OpenAI-compatible API.
+        if role not in {"user", "assistant"} or not content.strip():
             return
         with sqlite3.connect(self.path) as db:
             db.execute(
                 "INSERT INTO messages(role, content, created_at) VALUES (?, ?, ?)",
                 (role, content, time.time()),
             )
-            # Keep the local database bounded. Older context is summarized/forgotten
-            # rather than growing without limit.
             db.execute(
                 "DELETE FROM messages WHERE id NOT IN "
                 "(SELECT id FROM messages ORDER BY id DESC LIMIT 80)"
@@ -74,7 +74,7 @@ class MemoryStore:
     def prompt_context(self, recent_limit: int = 24) -> list[dict[str, str]]:
         facts = self.facts()
         messages = self.recent_messages(recent_limit)
-        context = []
+        context: list[dict[str, str]] = []
         if facts:
             context.append(
                 {
