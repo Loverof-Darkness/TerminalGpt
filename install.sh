@@ -21,29 +21,38 @@ show_loading() {
 }
 
 show_welcome() {
-  # Fixed 7-row block wordmark. No dynamic ANSI variables are used in the logo;
-  # printf interprets the escape sequences directly, preventing literal \033 text.
-  printf '\033[1;36m+-------------------------------------------------------------------------+\033[0m\n'
-  printf '\033[1;36m|\033[0m                                                                         \033[1;36m|\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m##### ##### ####  #   # ##### #   #  ###  #     ##   ##### #####\033[1;31m  #### ##### ####\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m  #   #     #   # #  ##   #   ##  # #   # #     ##   #   # #    \033[1;31m #   # #   # #\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m  #   #     #   # # # #   #   ##  # #   # #     ##   #   # #    \033[1;31m #   # #   # #\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m  #   ####  ####  #   #   #   # # # ##### #     ##   #   # #### \033[1;31m #   # ####  #\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m  #   #     # #   #   #   #   #  ## #   # #     ##   #   # #    \033[1;31m #   # #  #  #\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m  #   #     #  #  #   #   #   #  ## #   # #     ##   #   # #    \033[1;31m #   # #   # #\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|  \033[1;35m  #   ##### #   # ##### ##### #   # #   # ##### ##   ##### #    \033[1;31m ####  #   # #\033[1;36m  |\033[0m\n'
-  printf '\033[1;36m|\033[0m                                                                         \033[1;36m|\033[0m\n'
-  printf '\033[1;36m|                    \033[1;97mTERMINAL-FIRST AI AGENT\033[0m                    \033[1;36m|\033[0m\n'
-  printf '\033[1;36m|                         \033[1;97mFOR YOUR SYSTEM\033[0m                         \033[1;36m|\033[0m\n'
-  printf '\033[1;36m+-------------------------------------------------------------------------+\033[0m\n'
-  printf '\n'
+  # Large ANSI block wordmark inspired by the reference style.
+  # TERMINAL = bright magenta, GPT = bright red.
+  printf '\033[1;35m'
+  printf '█████ █████ █████  ███   ███  ████  ████  █████  ██  ███  ██     ██\n'
+  printf '  █   ██      █    █ ██ █ ██  ██  ██ ██    ██     ██   █   ██     ██\n'
+  printf '  █   ████    █    █  ███  █  ██  ██ ██    ████    █   █   ██     ██\n'
+  printf '  █   ██      █    █   █   █  ██  ██ ██    ██      █   █   ██     ██\n'
+  printf '  █   ██      █    █       █  ██  ██ ██    ██      █   █   ██     ██\n'
+  printf '  █   ██      █    █       █  ██  ██ ██    ██      █   █   ██     ██\n'
+  printf '  █   █████   █    █       █  █████  ████  █████   █   █    █████  █████\n'
+  printf '\033[0m'
+
+  printf '\033[1;31m'
+  printf ' █████  █████  █████\n'
+  printf '██      ██  ██ ██\n'
+  printf '██  ███ █████  ██\n'
+  printf '██   ██ ██  ██ ██\n'
+  printf '██   ██ ██  ██ ██\n'
+  printf '██   ██ ██  ██ ██\n'
+  printf ' █████  ██  ██ █████\n'
+  printf '\033[0m\n'
+
+  printf '\033[1;36m══════════════════════════════════════════════════════════════════════════════\033[0m\n'
+  printf '\033[1;97m                 Terminal-first AI agent for your system\033[0m\n'
+  printf '\033[1;36m══════════════════════════════════════════════════════════════════════════════\033[0m\n\n'
 
   printf '\033[1;97mTerminalGPT\033[0m is a terminal-first AI agent that can reason about your machine,\n'
   printf 'inspect files and system state, run approved shell commands, and use browser-based\n'
   printf 'human approval before performing sensitive actions.\n\n'
-  printf '\033[0;37mThis installer will download the latest TerminalGPT source from GitHub,\033[0m\n'
+  printf '\033[0;37mThis installer will download the latest TerminalGPT source from GitHub,\n'
   printf 'create an isolated Python environment, install dependencies, and install\n'
-  printf 'the \033[1;97mterminalgpt\033[0m command under \033[1;97m%s\033[0m.\n\n' "$BIN_DIR"
+  printf 'the \033[1;97mterminalgpt\033[0m command under \033[1;97m%s\033[0m.\033[0m\n\n' "$BIN_DIR"
 
   if [[ "${TERMINALGPT_ASSUME_YES:-0}" == "1" ]]; then
     return 0
