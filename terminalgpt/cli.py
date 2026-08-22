@@ -15,24 +15,22 @@ from .state import SessionState
 app = typer.Typer(add_completion=False)
 console = Console()
 
-# NVIDIA currently marks 32 endpoints as "Free Endpoint" in its catalog, but many
-# are specialized (embeddings, OCR, TTS, translation, safety, image/video generation)
-# and are not suitable as TerminalGPT's text/tool agent backend. This registry contains
-# the currently listed free chat/text/agent-capable endpoints that can be selected here.
+# Keep this registry limited to models suitable for TerminalGPT text/tool-agent use.
+# Retired/deprecated free endpoints must not be presented as healthy choices.
 NVIDIA_MODELS = [
     ("openai/gpt-oss-20b", "Fast general reasoning"),
     ("openai/gpt-oss-120b", "Stronger reasoning / agents"),
-    ("deepseek-ai/deepseek-v4-flash", "Fast coding / agents"),
-    ("deepseek-ai/deepseek-v4-pro", "Advanced coding / reasoning"),
+    ("deepseek-ai/deepseek-v4-flash-0731", "Fast coding / reasoning / agentic tool use"),
+    ("deepseek-ai/deepseek-v4-pro", "Advanced coding / reasoning / agentic tool use"),
     ("nvidia/nemotron-3-nano-30b-a3b", "Compact coding / reasoning / tools"),
     ("nvidia/nemotron-3-super-120b-a12b", "Strong long-context agentic reasoning"),
     ("nvidia/nemotron-3-ultra-550b-a55b", "Frontier long-context agentic reasoning"),
     ("nvidia/nemotron-nano-9b-v2", "Efficient reasoning / agentic tasks"),
     ("nvidia/llama-3.3-nemotron-super-49b-v1.5", "Reasoning / tool calling / chat"),
     ("nvidia/llama-3.3-nemotron-super-49b-v1", "Reasoning / tool calling / chat"),
-    ("nvidia/llama-3.1-nemotron-nano-8b-v1", "Small reasoning / agentic model"),
+    ("nvidia/llama-3.1-nemotron-nano-8b-v1", "Small reasoning / agentic tasks"),
     ("nvidia/nemotron-mini-4b-instruct", "Small chat / RAG / function calling"),
-    ("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning", "Omni-modal reasoning"),
+    ("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning", "Omni-modal reasoning / agents"),
     ("google/gemma-4-31b-it", "Coding / reasoning / agentic"),
     ("mistralai/mistral-medium-3.5-128b", "Coding / reasoning / agentic"),
     ("mistralai/mistral-small-4-119b-2603", "Reasoning / coding / multimodal"),
@@ -100,8 +98,8 @@ def choose_model(current_model: str) -> str:
         )
         return current_model
 
-    console.print("[bold cyan]NVIDIA free text/chat/agent models:[/bold cyan]")
-    console.print("[dim]Specialized free endpoints such as embeddings/OCR/TTS are excluded because they cannot act as TerminalGPT's chat backend.[/dim]")
+    console.print("[bold cyan]NVIDIA text/chat/agent models:[/bold cyan]")
+    console.print("[dim]Deprecated/retired endpoints are intentionally excluded from the selectable list.[/dim]")
     for index, (model, description) in enumerate(NVIDIA_MODELS, start=1):
         marker = " [green](current)[/green]" if model == current_model else ""
         console.print(f"  [{index:>2}] {model}{marker} — {description}")
