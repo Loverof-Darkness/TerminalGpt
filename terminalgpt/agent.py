@@ -4,8 +4,7 @@ import json
 import re
 from typing import Any
 
-from openai import AsyncOpenAI
-from openai import APIStatusError
+from openai import APIStatusError, AsyncOpenAI
 
 from .config import settings
 from .memory import MemoryStore
@@ -93,17 +92,11 @@ def _learn_explicit_facts(memory: MemoryStore, text: str) -> None:
 
 
 def _command_fingerprint(command: str) -> str:
-    """Create a conservative fingerprint to catch repeated diagnostic commands.
-
-    Commands using different output filters but the same underlying diagnostic command
-    are treated as equivalent. This prevents loops such as repeated variants of
-    `systemd-analyze blame | awk/grep/...`.
-    """
+    """Conservatively fingerprint commands to catch repeated diagnostics."""
     normalized = re.sub(r"\s+", " ", command.strip().lower())
     normalized = re.sub(r"2>/dev/null", "", normalized)
     base = normalized.split("|", 1)[0].strip()
-    base = re.sub(r"\s+", " ", base)
-    return base
+    return re.sub(r"\s+", " ", base)
 
 
 def _is_model_gone(exc: Exception) -> bool:
@@ -240,17 +233,14 @@ async def run_agent(
 
             messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
 
-        # Three or more equivalent attempts means the model is stuck. Give it one
-        # explicit instruction to stop/change strategy rather than consuming the budget.
         if state.strategy_repeats >= 3 or (len(last_fingerprints) >= 4 and len(set(last_fingerprints[-4:])) <= 1):
             messages.append(
                 {
-                    "role": "system",
+                    "role": "user",
                     "content": (
-                        "STOP REPEATING THE SAME DIAGNOSTIC STRATEGY. "
-                        "You have made no meaningful progress. Do not issue another equivalent command. "
-                        "Either choose a genuinely different tool/command or provide the best final answer "
-                        "with an explicit limitation."
+                        "STOP REPEATING THE SAME DIAGNOSTIC STRATEGY. You have made no meaningful progress. "
+                        "Do not issue another equivalent command. Choose a genuinely different diagnostic strategy "
+                        "or provide the best final answer with an explicit limitation."
                     ),
                 }
             )
@@ -258,21 +248,25 @@ async def run_agent(
             state.strategy_repeats = 0
 
         if not made_progress and iteration >= 2:
-            # Give the model a chance to finalize after blocked/rejected/repeated tools.
             messages.append(
                 {
-                    "role": "system",
+                    "role": "user",
                     "content": "No new information was obtained in this step. Prefer a final answer unless a materially different action is necessary.",
                 }
             )
 
-    # Never leak a raw iteration RuntimeError to the interactive CLI.
-    final_response, active_model = await _completion_with_fallback(client, selected_model, messages + [
+    # Never leak a raw iteration RuntimeError to the interactive CLI. Add a final user
+    # instruction so the message ordering remains valid for OpenAI-compatible APIs.
+    final_messages = messages + [
         {
-            "role": "system",
-            "content": "The tool budget is exhausted. Do not call tools. Give the user the best concise final answer using only the information already gathered, including any limitation.",
+            "role": "user",
+            "content": (
+                "The tool-call budget is exhausted. Do not call any more tools. Give the user the best concise "
+                "final answer using only the information already gathered, including any limitation."
+            ),
         }
-    ])
+    ]
+    final_response, active_model = await _completion_with_fallback(client, selected_model, final_messages)
     output = final_response.choices[0].message.content or "I could not complete the task within the available tool-call budget."
     state.emit("agent_finished", output=output, model=active_model, iterations=max_iterations, budget_exhausted=True)
     memory.add_message("assistant", output)
